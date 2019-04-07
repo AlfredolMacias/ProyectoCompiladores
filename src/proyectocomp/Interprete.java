@@ -8,7 +8,12 @@ package proyectocomp;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
@@ -71,6 +76,11 @@ public class Interprete extends javax.swing.JFrame {
 
         jButton1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jButton1.setText("Ejecutar");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jButton2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jButton2.setText("Salir");
@@ -138,6 +148,21 @@ public class Interprete extends javax.swing.JFrame {
         this.resultado.setText("Hola");
         automata();
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        cont = 0;
+        estadoActual= 0;
+        linea = 1;
+        this.resultado.setText("hola");
+        content = jTextArea1.getText() + " ";
+        preanalisis = Preanalisis();
+        
+        A();
+        if(preanalisis.getToken() != "finFichero"){
+            //ErrorSintactico(preanalisis.lexema(), "Fin de Fichero");
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -262,6 +287,12 @@ public class Interprete extends javax.swing.JFrame {
     //** AUTOMATA **\\
     
     //** ANALIZADOR LEXICO **\\
+    public Token Preanalisis(){
+        aLexico();
+        Token token = tokens.get(tokens.size() - 1);
+        return token;
+    } 
+    
     public void aLexico(){
         if(cont < content.length()){
             char c = content.charAt(cont);
@@ -276,9 +307,9 @@ public class Interprete extends javax.swing.JFrame {
                 }
             }
             estadoActual = existeTran(estadoActual,c);
-            if(estadoActual == -1){
+            if(estadoActual == -2){
                 this.resultado.setText("Error Léxico en la linea " + linea);
-                System.out.println("Error: " + c);
+                System.out.println("Error en la linea: " + linea);
                 tokens.add(new Token("Error", String.valueOf(c), linea));
                 estadoActual = 0;
             }else{
@@ -297,7 +328,7 @@ public class Interprete extends javax.swing.JFrame {
                         sb.append(a);
                     }
                     lexema = sb.toString();
-                    if(nomToken.equals("Id")){
+                    if(nomToken.equals("id")){
                        if(esReservada(lexema)){
                             nomToken = "Pr" + lexema;
                         }
@@ -353,7 +384,7 @@ public class Interprete extends javax.swing.JFrame {
                 }
             }
         }
-        return -1;
+        return -2;
     }
     public String nomToken(int estadoActual){
         for(Transicion t: transiciones){
@@ -365,6 +396,426 @@ public class Interprete extends javax.swing.JFrame {
     }
     //** ANALIZADOR LEXICO **\\
     
+    //** ANALIZADOR SINTACTICO **\\
+    public void A(){
+        if(preanalisis.getToken().equals("PrPROGRAMA")){
+            Emparejar("PrPROGRAMA");
+            Emparejar("id");           
+            CONSTANTES();           
+            ESTRUCTURAS();            
+            Emparejar("PrINICIO");            
+            INSTRUCCIONES();            
+            Emparejar("PrFIN");
+        }else{
+            ErrorSintactico(preanalisis.lexema(), "PROGRAMA");
+        }
+    }
+    public void CONSTANTES(){
+        if(preanalisis.getToken().equals("PrCONSTANTES")){
+            Emparejar("PrCONSTANTES");
+            Emparejar("id");
+            Emparejar("asignacion");
+            VALOR1();
+            CONST();
+        }else if(preanalisis.getToken().equals("PrESTRUCTURAS") || preanalisis.getToken().equals("PrINICIO")){
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "CONSTANTES, ESTRUCTURAS O INICIO");
+        }
+    }
+    public void CONST(){
+        if(preanalisis.getToken().equals("id")){
+            Emparejar("id");
+            Emparejar("asignacion");
+            VALOR1();
+            CONST();
+        }else if(preanalisis.getToken().equals("PrESTRUCTURAS") || preanalisis.getToken().equals("PrINICIO")){
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "id, ESTRUCTURAS O INICIO");
+        }
+    }
+    public void VALOR1(){
+        if(preanalisis.getToken().equals("num")){
+            Emparejar("num");
+        }else if(preanalisis.getToken().equals("comilla")){
+            Emparejar("comilla");
+            //CAR();
+            Emparejar("comilla");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "número o comilla");
+        }
+    }
+    
+    public void ESTRUCTURAS(){
+        if(preanalisis.getToken().equals("PrESTRUCTURAS")){
+            Emparejar("PrESTRUCTURAS");
+            Emparejar("id");
+            Emparejar("asignacion");
+            Emparejar("lAbre");
+            CAMPOS();
+            Emparejar("lCierra");
+            EST2();
+        }else if(preanalisis.getToken().equals("PrINICIO")){   
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "ESTRUCTURAS O INICIO");
+        }        
+    }
+    public void EST2(){
+        if(preanalisis.getToken().equals("id")){
+            Emparejar("id");
+            ESTVAR();
+        }else if(preanalisis.getToken().equals("PrInicio")){  
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "id O INICIO");
+        }
+    }
+    public void CAMPOS(){
+        if(preanalisis.getToken().equals("PrEntero") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
+            TIPO();
+            Emparejar("id");
+            SEP();
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "ENTERO, APUNTADO O CARACTER");
+        }
+    }
+    public void SEP(){
+        if(preanalisis.getToken().equals("puntoComa")){
+            Emparejar("puntoComa");
+            CAMPO2();
+        }else if(preanalisis.getToken().equals("coma")){
+            Emparejar("coma");
+            Emparejar("id");
+            SEP2();
+        }else{
+            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        }
+    }
+    public void CAMPO2(){
+        if(preanalisis.getToken().equals("PrEntero") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
+            TIPO();
+            Emparejar("id");
+            SEP3();
+        }else if(preanalisis.getToken().equals("lCierra")){
+            
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "ENTERO, APUNTADO, CARACTER O }");
+        }
+    }
+    public void SEP2(){
+        if(preanalisis.getToken().equals("puntoComa")){
+            Emparejar("puntoComa");
+            CAMPO3();
+        }else if(preanalisis.getToken().equals("coma")){
+            Emparejar("coma");
+            Emparejar("id");
+            Emparejar("puntoComa");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        }
+    }
+    public void SEP3(){
+        if(preanalisis.getToken().equals("puntoComa")){
+            Emparejar("puntoComa");
+            CAMPO3();
+        }else if(preanalisis.getToken().equals("coma")){
+            Emparejar("coma");
+            Emparejar("id");
+            Emparejar("puntoComa");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        }
+    }
+    public void CAMPO3(){
+        if(preanalisis.getToken().equals("PrEntero") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
+            TIPO();
+            Emparejar("id");
+            SEP3();
+        }else if(preanalisis.getToken().equals("lCierra")){
+            
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "ENTERO, APUNTADO, CARACTER O }");
+        }
+    }
+    public void TIPO(){
+        if(preanalisis.getToken().equals("PrENTERO")){
+            Emparejar("PrEntero");
+        }else if(preanalisis.getToken().equals("PrAPUNTADOR")){
+            Emparejar("PrAPUNTADOR");
+        }else if(preanalisis.getToken().equals("PrCARACTER")){
+            Emparejar("PrCARACTER");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "ENTERO, APUNTADO, CARACTER");
+        }
+    }
+    public void ESTVAR(){
+        if(preanalisis.getToken().equals("asignacion")){
+            Emparejar("asignacion");
+            Emparejar("lAbre");
+            CAMPOS();
+            Emparejar("lCierra");
+            VAR3();
+        }else if(preanalisis.getToken().equals("id")){
+            Emparejar("id");
+            VARIABLES();
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "asignacion o id");
+        }
+    }
+    public void VAR3(){
+        if(preanalisis.getToken().equals("id")){
+            Emparejar("id");
+            Emparejar("id");
+            VARIABLES();
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "id");
+        }
+    }
+    public void VARIABLES(){
+        if(preanalisis.getToken().equals("puntoComa") || preanalisis.getToken().equals("coma")){
+            VAR2();
+            Emparejar("puntoComa");
+            VARIABLES2();
+        }else{
+            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        }
+    }
+    public void VAR2(){
+        if(preanalisis.getToken().equals("coma")){
+            Emparejar("coma");
+            Emparejar("id");
+            VAR2();
+        }else if( preanalisis.getToken().equals(";")){
+            
+        }else{
+            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        }
+    }
+    public void VARIABLES2(){
+        if(preanalisis.getToken().equals("id")){
+            Emparejar("id");
+            Emparejar("id");
+            VAR2();
+            Emparejar("puntoComa");
+            VARIABLES2();
+        }else if(preanalisis.getToken().equals("PrINICIO")){
+            
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "id O INICIO");
+        }
+    }
+    
+    public void INSTRUCCIONES(){
+        if(preanalisis.getToken().equals("PrSI")){
+            SI();
+            INSTRUCCIONES();
+        }else if(preanalisis.getToken().equals("PrMIENTRAS")){
+            MIENTRAS();
+            INSTRUCCIONES();
+        }else if(preanalisis.getToken().equals("PrESCRIBE")){
+            ESCRIBE();
+            INSTRUCCIONES();
+        }else if(preanalisis.getToken().equals("PrLEE")){
+            LEE();
+            INSTRUCCIONES();
+        }else if(preanalisis.getToken().equals("id")){
+            EXP();
+            INSTRUCCIONES();
+        }else if(preanalisis.getToken().equals("PrFIN") || preanalisis.getToken().equals("PrSINO")){
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "SI, MIENTRAS, ESCRIBE, LEE, id o FIN");
+        }
+    }
+    
+    public void SI(){
+        if(preanalisis.getToken().equals("PrSI")){
+            Emparejar("PrSI");
+            Emparejar("pAbre");
+            CONDICION();
+            Emparejar("pCierra");
+            Emparejar("PrENTONCES");
+            INSTRUCCIONES();
+            SINO();
+            Emparejar("PrFIN");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "SI");
+        }
+    }
+    public void SINO(){
+        if(preanalisis.getToken().equals("PrSINO")){
+            Emparejar("PrSINO");
+            INSTRUCCIONES();
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "SINO");
+        }
+    }
+    
+    public void CONDICION(){
+        if(preanalisis.getToken().equals("id") || preanalisis.getToken().equals("num") || preanalisis.getToken().equals("'")){
+            VARCON();
+            CONDICIONAL();
+            VARCON();
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "id, num, o '");   
+        }
+    }
+    public void VARCON(){
+        if(preanalisis.getToken().equals("id")){
+            Emparejar("id");
+            AP();
+        }else if(preanalisis.getToken().equals("num")){
+            Emparejar("num");
+        }else if(preanalisis.getToken().equals("'")){
+            Emparejar("'");
+            //CAR();
+            Emparejar("'");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "id, num, o '");   
+        }
+    }
+    public void AP(){
+        if(preanalisis.getToken().equals("punto")){
+            Emparejar("punto");
+            Emparejar("id");
+        }else if(preanalisis.getToken().equals("igualdad") || preanalisis.getToken().equals("diferentes") || 
+                preanalisis.getToken().equals("mayor") || preanalisis.getToken().equals("menor") || 
+                preanalisis.getToken().equals("mayorIgual") || preanalisis.getToken().equals("mayorIgual") ||
+                preanalisis.getToken().equals("pCierra")){
+            
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "., ==, !=, <, >, >=, <= o )");   
+        }
+    }
+    public void CONDICIONAL(){
+        if(preanalisis.getToken().equals("igualdad")){
+            Emparejar("igualdad");
+        }else if(preanalisis.getToken().equals("diferente")){
+            Emparejar("diferente");
+        }else if(preanalisis.getToken().equals("menor")){
+            Emparejar("menor");
+        }else if(preanalisis.getToken().equals("mayor")){
+            Emparejar("mayor");
+        }else if(preanalisis.getToken().equals("mayorIgual")){
+            Emparejar("mayorIgual");
+        }else if(preanalisis.getToken().equals("menorIgual")){
+            Emparejar("menorIgual");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "==, !=, <, >, >= o <=");   
+        }
+    }
+    
+    public void MIENTRAS(){
+        if(preanalisis.getToken().equals("PrMIENTRAS")){
+            Emparejar("PrMIENTRAS");
+            Emparejar("pAbre");
+            CONDICION();
+            Emparejar("pCierra");
+            Emparejar("PrHACER");
+            INSTRUCCIONES();
+            Emparejar("PrFIN");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "MIENTRAS");
+        }
+    }    
+    
+    public void ESCRIBE(){
+        if(preanalisis.getToken().equals("PrESCRIBE")){
+            Emparejar("PrEscribe");
+            Emparejar("pAbre");
+            //CONT();
+            Emparejar("pCierra");
+            Emparejar("puntoComa");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "ESCRIBE");
+        }
+    }
+    public void LEE(){
+        if(preanalisis.getToken().equals("PrLEE")){
+            Emparejar("PrLEE");
+            Emparejar("pAbre");
+            Emparejar("id");
+            Emparejar("pCierra");
+            Emparejar("puntoComa");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "LEE");
+        }
+    }
+    
+    public void EXP(){
+        if(preanalisis.getToken().equals("id")){
+            Emparejar("id");
+            OP1();
+            Emparejar("asignacion");
+            OP();
+            Emparejar("puntoComa");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "id");
+        }
+    }
+    public void OP1(){
+        if(preanalisis.getToken().equals("punto")){
+            Emparejar("punto");
+            Emparejar("id");
+        }else if(preanalisis.getToken().equals("asignacion") || preanalisis.getToken().equals("puntoComa") || 
+                preanalisis.getToken().equals("mas") || preanalisis.getToken().equals("menos") ||
+                preanalisis.getToken().equals("entre") || preanalisis.getToken().equals("por")){
+            
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "., = o ;");
+        }
+    }
+    public void OP(){
+        if(preanalisis.getToken().equals("num")){
+            Emparejar("num");
+            EXP2();
+        }else if(preanalisis.getToken().equals("id")){
+            Emparejar("id");
+            OP1();
+            EXP2();
+        }else if(preanalisis.getToken().equals("PrNULL")){
+            Emparejar("PrNULL");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "numero, id o NULL");
+        }
+    }
+    public void EXP2(){
+        if(preanalisis.getToken().equals("PrMOD") || 
+                preanalisis.getToken().equals("mas") || preanalisis.getToken().equals("menos") ||
+                preanalisis.getToken().equals("entre") || preanalisis.getToken().equals("por")){
+            OPERADOR();
+            OP();
+        }else if(preanalisis.getToken().equals("puntoComa")){
+            
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "MOD, +, -, * /");
+        }
+    }
+    public void OPERADOR(){
+        if(preanalisis.getToken().equals("PrMOD")){
+            Emparejar("PrMod");
+        }else if(preanalisis.getToken().equals("mas")){
+            Emparejar("mas");
+        }else if(preanalisis.getToken().equals("menos")){
+            Emparejar("menos");
+        }else if(preanalisis.getToken().equals("entre")){
+            Emparejar("entre");
+        }else if(preanalisis.getToken().equals("por")){
+            Emparejar("por");
+        }else{
+            ErrorSintactico(preanalisis.getToken(), "MOD, +, -, * /");
+        }
+    }
+    public void ErrorSintactico(String lexema, String esperaba){
+        this.resultado.setText("Error Sintactico en la linea: se encontró: " + lexema + " y se esperaba: " + esperaba);
+    }
+    void Emparejar(String token){
+        if(token.equals(preanalisis.getToken())){
+            preanalisis = Preanalisis();
+            System.out.println("Token: " + preanalisis.getToken());
+        }else{
+            ErrorSintactico(preanalisis.lexema(),token);
+        }
+    }
+    
+    //** ANALIZADOR SINTACTICO **\\
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
