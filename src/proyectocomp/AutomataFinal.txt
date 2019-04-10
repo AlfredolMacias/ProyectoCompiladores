@@ -61,7 +61,8 @@ PROGRAMA INICIO FIN CONSTANTES ESTRUCTURAS MOD ENTERO CARACTER APUNTADOR NULL SI
 0 10 / 0 ""
 10 -1 r 0 entre
 0 11 < 0 ""
-11 12 = 0 menorIgual
+11 12 = 0 ""
+12 -1 r 0 menorIgual
 11 13 - 0 ""
 11 13 + 0 ""
 11 13 * 0 ""

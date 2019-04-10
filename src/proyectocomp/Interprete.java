@@ -37,6 +37,7 @@ public class Interprete extends javax.swing.JFrame {
     String[] palabrasRes = null;
     String[] estadosFinales = null;
     int cont = 0;
+    boolean Error = false;
     ArrayList<Token> tokens = new ArrayList<Token>();
     File abre = null; 
     ArrayList<Transicion> transiciones = new ArrayList<Transicion>();
@@ -145,7 +146,6 @@ public class Interprete extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        this.resultado.setText("Hola");
         automata();
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -154,13 +154,16 @@ public class Interprete extends javax.swing.JFrame {
         cont = 0;
         estadoActual= 0;
         linea = 1;
-        this.resultado.setText("hola");
         content = jTextArea1.getText() + " ";
         preanalisis = Preanalisis();
-        
+        this.resultado.setText("");
+        Error = false;
         A();
         if(preanalisis.getToken() != "finFichero"){
-            //ErrorSintactico(preanalisis.lexema(), "Fin de Fichero");
+            ErrorSintactico(preanalisis.lexema(), preanalisis.linea(), "Fin de Fichero");
+        }
+        if(!Error){
+            this.resultado.setText("Interpretado correctamente");
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -292,7 +295,6 @@ public class Interprete extends javax.swing.JFrame {
         Token token = tokens.get(tokens.size() - 1);
         return token;
     } 
-    
     public void aLexico(){
         if(cont < content.length()){
             char c = content.charAt(cont);
@@ -302,7 +304,7 @@ public class Interprete extends javax.swing.JFrame {
                 c = 'l';
             }else if(Character.isWhitespace(c)){
                 c = 'e';
-                if((int)content.charAt(cont) == 13){
+                if(content.charAt(cont) == '\n' || content.charAt(cont) == '\r'){
                     linea++;
                 }
             }
@@ -372,7 +374,6 @@ public class Interprete extends javax.swing.JFrame {
         }
         return false;
     }
-    
     public int existeTran(int actual, char simbolo){
         if(transiciones == null){
             System.out.println("NO hay");
@@ -398,420 +399,545 @@ public class Interprete extends javax.swing.JFrame {
     
     //** ANALIZADOR SINTACTICO **\\
     public void A(){
-        if(preanalisis.getToken().equals("PrPROGRAMA")){
-            Emparejar("PrPROGRAMA");
-            Emparejar("id");           
-            CONSTANTES();           
-            ESTRUCTURAS();            
-            Emparejar("PrINICIO");            
-            INSTRUCCIONES();            
-            Emparejar("PrFIN");
-        }else{
-            ErrorSintactico(preanalisis.lexema(), "PROGRAMA");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrPROGRAMA")){
+                Emparejar("PrPROGRAMA");
+                Emparejar("id");           
+                CONSTANTES();           
+                ESTRUCTURAS();            
+                Emparejar("PrINICIO");            
+                INSTRUCCIONES();            
+                Emparejar("PrFIN");
+            }else{
+                ErrorSintactico(preanalisis.lexema(), preanalisis.linea(), "PROGRAMA");
+            }
         }
+        
     }
+    
     public void CONSTANTES(){
-        if(preanalisis.getToken().equals("PrCONSTANTES")){
-            Emparejar("PrCONSTANTES");
-            Emparejar("id");
-            Emparejar("asignacion");
-            VALOR1();
-            CONST();
-        }else if(preanalisis.getToken().equals("PrESTRUCTURAS") || preanalisis.getToken().equals("PrINICIO")){
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "CONSTANTES, ESTRUCTURAS O INICIO");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrCONSTANTES")){
+                Emparejar("PrCONSTANTES");
+                Emparejar("id");
+                Emparejar("asignacion");
+                VALOR1();
+                CONST();
+            }else if(preanalisis.getToken().equals("PrESTRUCTURAS") || preanalisis.getToken().equals("PrINICIO")){
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "CONSTANTES, ESTRUCTURAS O INICIO");
+            }
         }
     }
     public void CONST(){
-        if(preanalisis.getToken().equals("id")){
-            Emparejar("id");
-            Emparejar("asignacion");
-            VALOR1();
-            CONST();
-        }else if(preanalisis.getToken().equals("PrESTRUCTURAS") || preanalisis.getToken().equals("PrINICIO")){
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "id, ESTRUCTURAS O INICIO");
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
+                Emparejar("id");
+                Emparejar("asignacion");
+                VALOR1();
+                CONST();
+            }else if(preanalisis.getToken().equals("PrESTRUCTURAS") || preanalisis.getToken().equals("PrINICIO")){
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, ESTRUCTURAS O INICIO");
+            }
         }
     }
     public void VALOR1(){
-        if(preanalisis.getToken().equals("num")){
-            Emparejar("num");
-        }else if(preanalisis.getToken().equals("comilla")){
-            Emparejar("comilla");
-            //CAR();
-            Emparejar("comilla");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "número o comilla");
+        if(!Error){
+            if(preanalisis.getToken().equals("num")){
+                Emparejar("num");
+            }else if(preanalisis.getToken().equals("comilla")){
+                Emparejar("comilla");
+                CAR();
+                Emparejar("comilla");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "número o comilla");
+            }
+        }
+    }
+    public void CAR(){
+        if(!Error){
+            if(preanalisis.getToken().equals("id") || preanalisis.getToken().equals("num")){
+                if(preanalisis.lexema().length() == 1){
+                    preanalisis = Preanalisis();
+                }else{
+                    ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "caracter");
+                }
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id");
+            }
         }
     }
     
     public void ESTRUCTURAS(){
-        if(preanalisis.getToken().equals("PrESTRUCTURAS")){
-            Emparejar("PrESTRUCTURAS");
-            Emparejar("id");
-            Emparejar("asignacion");
-            Emparejar("lAbre");
-            CAMPOS();
-            Emparejar("lCierra");
-            EST2();
-        }else if(preanalisis.getToken().equals("PrINICIO")){   
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "ESTRUCTURAS O INICIO");
-        }        
+        if(!Error){                    
+            if(preanalisis.getToken().equals("PrESTRUCTURAS")){
+                Emparejar("PrESTRUCTURAS");
+                Emparejar("id");
+                Emparejar("asignacion");
+                Emparejar("lAbre");
+                CAMPOS();
+                Emparejar("lCierra");
+                EST2();
+            }else if(preanalisis.getToken().equals("PrINICIO")){   
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "ESTRUCTURAS O INICIO");
+            }        
+        }
     }
     public void EST2(){
-        if(preanalisis.getToken().equals("id")){
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
             Emparejar("id");
             ESTVAR();
-        }else if(preanalisis.getToken().equals("PrInicio")){  
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "id O INICIO");
+            }else if(preanalisis.getToken().equals("PrINICIO")){  
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id O INICIO");
+            }
         }
     }
     public void CAMPOS(){
-        if(preanalisis.getToken().equals("PrEntero") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
+        if(!Error){
+            if(preanalisis.getToken().equals("PrENTERO") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
             TIPO();
             Emparejar("id");
             SEP();
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "ENTERO, APUNTADO O CARACTER");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "ENTERO, APUNTADO O CARACTER");
+            }
         }
     }
     public void SEP(){
-        if(preanalisis.getToken().equals("puntoComa")){
-            Emparejar("puntoComa");
-            CAMPO2();
-        }else if(preanalisis.getToken().equals("coma")){
-            Emparejar("coma");
-            Emparejar("id");
-            SEP2();
-        }else{
-            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        if(!Error){
+            if(preanalisis.getToken().equals("puntoComa")){
+                Emparejar("puntoComa");
+                CAMPO2();
+            }else if(preanalisis.getToken().equals("coma")){
+                Emparejar("coma");
+                Emparejar("id");
+                SEP2();
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), ", O ;");
+            }    
         }
     }
     public void CAMPO2(){
-        if(preanalisis.getToken().equals("PrEntero") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
-            TIPO();
-            Emparejar("id");
-            SEP3();
-        }else if(preanalisis.getToken().equals("lCierra")){
-            
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "ENTERO, APUNTADO, CARACTER O }");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrENTERO") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
+                TIPO();
+                Emparejar("id");
+                SEP3();
+            }else if(preanalisis.getToken().equals("lCierra")){
+
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "ENTERO, APUNTADO, CARACTER O }");
+            }
         }
     }
     public void SEP2(){
-        if(preanalisis.getToken().equals("puntoComa")){
-            Emparejar("puntoComa");
-            CAMPO3();
-        }else if(preanalisis.getToken().equals("coma")){
-            Emparejar("coma");
-            Emparejar("id");
-            Emparejar("puntoComa");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        if(!Error){
+            if(preanalisis.getToken().equals("puntoComa")){
+                Emparejar("puntoComa");
+                CAMPO3();
+            }else if(preanalisis.getToken().equals("coma")){
+                Emparejar("coma");
+                Emparejar("id");
+                Emparejar("puntoComa");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), ", O ;");
+            }
         }
     }
     public void SEP3(){
-        if(preanalisis.getToken().equals("puntoComa")){
-            Emparejar("puntoComa");
-            CAMPO3();
-        }else if(preanalisis.getToken().equals("coma")){
-            Emparejar("coma");
-            Emparejar("id");
-            Emparejar("puntoComa");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        if(!Error){
+            if(preanalisis.getToken().equals("puntoComa")){
+                Emparejar("puntoComa");
+                CAMPO3();
+            }else if(preanalisis.getToken().equals("coma")){
+                Emparejar("coma");
+                Emparejar("id");
+                Emparejar("puntoComa");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), ", O ;");
+            }
         }
     }
     public void CAMPO3(){
-        if(preanalisis.getToken().equals("PrEntero") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
-            TIPO();
-            Emparejar("id");
-            SEP3();
-        }else if(preanalisis.getToken().equals("lCierra")){
-            
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "ENTERO, APUNTADO, CARACTER O }");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrENTERO") || preanalisis.getToken().equals("PrAPUNTADOR") || preanalisis.getToken().equals("PrCARACTER")){
+                TIPO();
+                Emparejar("id");
+                SEP3();
+            }else if(preanalisis.getToken().equals("lCierra")){
+
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "ENTERO, APUNTADO, CARACTER O }");
+            }    
         }
     }
     public void TIPO(){
-        if(preanalisis.getToken().equals("PrENTERO")){
-            Emparejar("PrEntero");
-        }else if(preanalisis.getToken().equals("PrAPUNTADOR")){
-            Emparejar("PrAPUNTADOR");
-        }else if(preanalisis.getToken().equals("PrCARACTER")){
-            Emparejar("PrCARACTER");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "ENTERO, APUNTADO, CARACTER");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrENTERO")){
+                Emparejar("PrENTERO");
+            }else if(preanalisis.getToken().equals("PrAPUNTADOR")){
+                Emparejar("PrAPUNTADOR");
+            }else if(preanalisis.getToken().equals("PrCARACTER")){
+                Emparejar("PrCARACTER");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "ENTERO, APUNTADO, CARACTER");
+            }
         }
     }
     public void ESTVAR(){
-        if(preanalisis.getToken().equals("asignacion")){
-            Emparejar("asignacion");
-            Emparejar("lAbre");
-            CAMPOS();
-            Emparejar("lCierra");
-            VAR3();
-        }else if(preanalisis.getToken().equals("id")){
-            Emparejar("id");
-            VARIABLES();
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "asignacion o id");
-        }
+        if(!Error){
+            if(preanalisis.getToken().equals("asignacion")){
+                Emparejar("asignacion");
+                Emparejar("lAbre");
+                CAMPOS();
+                Emparejar("lCierra");
+                VAR3();
+            }else if(preanalisis.getToken().equals("id")){
+                Emparejar("id");
+                VARIABLES();
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "asignacion o id");
+            }            
+        }  
     }
     public void VAR3(){
-        if(preanalisis.getToken().equals("id")){
-            Emparejar("id");
-            Emparejar("id");
-            VARIABLES();
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "id");
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
+                Emparejar("id");
+                Emparejar("id");
+                VARIABLES();
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id");
+            }
         }
     }
     public void VARIABLES(){
-        if(preanalisis.getToken().equals("puntoComa") || preanalisis.getToken().equals("coma")){
-            VAR2();
-            Emparejar("puntoComa");
-            VARIABLES2();
-        }else{
-            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        if(!Error){
+            if(preanalisis.getToken().equals("puntoComa") || preanalisis.getToken().equals("coma")){
+                VAR2();
+                Emparejar("puntoComa");
+                VARIABLES2();
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), ", O ;");
+            }
         }
     }
     public void VAR2(){
-        if(preanalisis.getToken().equals("coma")){
-            Emparejar("coma");
-            Emparejar("id");
-            VAR2();
-        }else if( preanalisis.getToken().equals(";")){
-            
-        }else{
-            ErrorSintactico(preanalisis.getToken(), ", O ;");
+        if(!Error){
+            if(preanalisis.getToken().equals("coma")){
+                Emparejar("coma");
+                Emparejar("id");
+                VAR2();
+            }else if( preanalisis.getToken().equals("puntoComa")){
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), ", O ;");
+            }   
         }
     }
     public void VARIABLES2(){
-        if(preanalisis.getToken().equals("id")){
-            Emparejar("id");
-            Emparejar("id");
-            VAR2();
-            Emparejar("puntoComa");
-            VARIABLES2();
-        }else if(preanalisis.getToken().equals("PrINICIO")){
-            
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "id O INICIO");
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
+                Emparejar("id");
+                Emparejar("id");
+                VAR2();
+                Emparejar("puntoComa");
+                VARIABLES2();
+            }else if(preanalisis.getToken().equals("PrINICIO")){
+
+            }else{
+                ErrorSintactico(preanalisis.getToken(),preanalisis.linea(), "id O INICIO");
+            }    
         }
     }
     
     public void INSTRUCCIONES(){
-        if(preanalisis.getToken().equals("PrSI")){
-            SI();
-            INSTRUCCIONES();
-        }else if(preanalisis.getToken().equals("PrMIENTRAS")){
-            MIENTRAS();
-            INSTRUCCIONES();
-        }else if(preanalisis.getToken().equals("PrESCRIBE")){
-            ESCRIBE();
-            INSTRUCCIONES();
-        }else if(preanalisis.getToken().equals("PrLEE")){
-            LEE();
-            INSTRUCCIONES();
-        }else if(preanalisis.getToken().equals("id")){
-            EXP();
-            INSTRUCCIONES();
-        }else if(preanalisis.getToken().equals("PrFIN") || preanalisis.getToken().equals("PrSINO")){
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "SI, MIENTRAS, ESCRIBE, LEE, id o FIN");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrSI") || preanalisis.getToken().equals("PrMIENTRAS") || 
+                    preanalisis.getToken().equals("PrESCRIBE") || preanalisis.getToken().equals("PrLEE") ||
+                    preanalisis.getToken().equals("id")){
+                INSTRUCCION();
+                INSTRUCCIONES();
+            }else if(preanalisis.getToken().equals("PrFIN") || preanalisis.getToken().equals("PrSINO")){
+
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "SI, MIENTRAS, ESCRIBE, LEE, id o FIN");
+            }    
+        }
+    }
+    public void INSTRUCCION(){
+        if(!Error){
+            if(preanalisis.getToken().equals("PrSI")){
+                SI();
+            }else if(preanalisis.getToken().equals("PrMIENTRAS")){
+                MIENTRAS();
+            }else if(preanalisis.getToken().equals("PrESCRIBE")){
+                ESCRIBE();
+            }else if(preanalisis.getToken().equals("PrLEE")){
+                LEE();
+            }else if(preanalisis.getToken().equals("id")){
+                EXP();
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "SI, MIENTRAS, ESCRIBE, LEE, id o FIN");
+            }    
         }
     }
     
     public void SI(){
-        if(preanalisis.getToken().equals("PrSI")){
-            Emparejar("PrSI");
-            Emparejar("pAbre");
-            CONDICION();
-            Emparejar("pCierra");
-            Emparejar("PrENTONCES");
-            INSTRUCCIONES();
-            SINO();
-            Emparejar("PrFIN");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "SI");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrSI")){
+                Emparejar("PrSI");
+                Emparejar("pAbre");
+                CONDICION();
+                Emparejar("pCierra");
+                Emparejar("PrENTONCES");
+                INSTRUCCIONES();
+                SINO();
+                Emparejar("PrFIN");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "SI");
+            }
         }
     }
     public void SINO(){
-        if(preanalisis.getToken().equals("PrSINO")){
-            Emparejar("PrSINO");
-            INSTRUCCIONES();
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "SINO");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrSINO")){
+                Emparejar("PrSINO");
+                INSTRUCCIONES();
+            }else if(preanalisis.getToken().equals("PrFIN")){
+                
+            }
+            else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "SINO");
+            }    
         }
     }
     
     public void CONDICION(){
+        if(!Error){
         if(preanalisis.getToken().equals("id") || preanalisis.getToken().equals("num") || preanalisis.getToken().equals("'")){
-            VARCON();
-            CONDICIONAL();
-            VARCON();
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "id, num, o '");   
+                VARCON();
+                CONDICIONAL();
+                VARCON();
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
+            }   
         }
     }
     public void VARCON(){
-        if(preanalisis.getToken().equals("id")){
-            Emparejar("id");
-            AP();
-        }else if(preanalisis.getToken().equals("num")){
-            Emparejar("num");
-        }else if(preanalisis.getToken().equals("'")){
-            Emparejar("'");
-            //CAR();
-            Emparejar("'");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "id, num, o '");   
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
+                Emparejar("id");
+                AP();
+            }else if(preanalisis.getToken().equals("num")){
+                Emparejar("num");
+            }else if(preanalisis.getToken().equals("'")){
+                Emparejar("comilla");
+                CAR();
+                Emparejar("comilla");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
+            }   
         }
     }
     public void AP(){
-        if(preanalisis.getToken().equals("punto")){
-            Emparejar("punto");
-            Emparejar("id");
-        }else if(preanalisis.getToken().equals("igualdad") || preanalisis.getToken().equals("diferentes") || 
-                preanalisis.getToken().equals("mayor") || preanalisis.getToken().equals("menor") || 
-                preanalisis.getToken().equals("mayorIgual") || preanalisis.getToken().equals("mayorIgual") ||
-                preanalisis.getToken().equals("pCierra")){
-            
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "., ==, !=, <, >, >=, <= o )");   
+        if(!Error){
+           if(preanalisis.getToken().equals("punto")){
+               Emparejar("punto");
+               Emparejar("id");
+           }else if(preanalisis.getToken().equals("igualdad") || preanalisis.getToken().equals("diferentes") || 
+                   preanalisis.getToken().equals("mayor") || preanalisis.getToken().equals("menor") || 
+                   preanalisis.getToken().equals("mayorIgual") || preanalisis.getToken().equals("menorIgual") ||
+                   preanalisis.getToken().equals("pCierra")){
+
+           }else{
+               ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "., ==, !=, <, >, >=, <= o )");   
+           }   
         }
     }
     public void CONDICIONAL(){
-        if(preanalisis.getToken().equals("igualdad")){
-            Emparejar("igualdad");
-        }else if(preanalisis.getToken().equals("diferente")){
-            Emparejar("diferente");
-        }else if(preanalisis.getToken().equals("menor")){
-            Emparejar("menor");
-        }else if(preanalisis.getToken().equals("mayor")){
-            Emparejar("mayor");
-        }else if(preanalisis.getToken().equals("mayorIgual")){
-            Emparejar("mayorIgual");
-        }else if(preanalisis.getToken().equals("menorIgual")){
-            Emparejar("menorIgual");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "==, !=, <, >, >= o <=");   
+        if(!Error){
+            if(preanalisis.getToken().equals("igualdad")){
+                Emparejar("igualdad");
+            }else if(preanalisis.getToken().equals("diferente")){
+                Emparejar("diferente");
+            }else if(preanalisis.getToken().equals("menor")){
+                Emparejar("menor");
+            }else if(preanalisis.getToken().equals("mayor")){
+                Emparejar("mayor");
+            }else if(preanalisis.getToken().equals("mayorIgual")){
+                Emparejar("mayorIgual");
+            }else if(preanalisis.getToken().equals("menorIgual")){
+                Emparejar("menorIgual");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "==, !=, <, >, >= o <=");   
+            }    
         }
     }
     
     public void MIENTRAS(){
-        if(preanalisis.getToken().equals("PrMIENTRAS")){
-            Emparejar("PrMIENTRAS");
-            Emparejar("pAbre");
-            CONDICION();
-            Emparejar("pCierra");
-            Emparejar("PrHACER");
-            INSTRUCCIONES();
-            Emparejar("PrFIN");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "MIENTRAS");
+        if(!Error){
+           if(preanalisis.getToken().equals("PrMIENTRAS")){
+               Emparejar("PrMIENTRAS");
+               Emparejar("pAbre");
+               CONDICION();
+               Emparejar("pCierra");
+               Emparejar("PrHACER");
+               INSTRUCCIONES();
+               Emparejar("PrFIN");
+           }else{
+               ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "MIENTRAS");
+           }   
         }
     }    
     
     public void ESCRIBE(){
-        if(preanalisis.getToken().equals("PrESCRIBE")){
-            Emparejar("PrEscribe");
-            Emparejar("pAbre");
-            //CONT();
-            Emparejar("pCierra");
-            Emparejar("puntoComa");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "ESCRIBE");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrESCRIBE")){
+                Emparejar("PrESCRIBE");
+                Emparejar("pAbre");
+                CONT();
+                Emparejar("pCierra");
+                Emparejar("puntoComa");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "ESCRIBE");
+            }   
+        }
+    }
+    public void CONT(){
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
+                Emparejar("id");
+            }else if(preanalisis.getToken().equals("comilla")){
+                Emparejar("comilla");
+                preanalisis = Preanalisis();
+                while(!preanalisis.getToken().equals("comilla")){
+                    preanalisis = Preanalisis();
+                }
+                Emparejar("comilla");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id o '");
+            }    
         }
     }
     public void LEE(){
-        if(preanalisis.getToken().equals("PrLEE")){
-            Emparejar("PrLEE");
-            Emparejar("pAbre");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrLEE")){
+                Emparejar("PrLEE");
+                Emparejar("pAbre");
+                Emparejar("id");
+                LEE1();
+                Emparejar("pCierra");
+                Emparejar("puntoComa");
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "LEE");
+            }    
+        }
+    }
+    public void LEE1(){
+        if(preanalisis.getToken().equals(("punto"))){
+            Emparejar("punto");
             Emparejar("id");
-            Emparejar("pCierra");
-            Emparejar("puntoComa");
+        }else if(preanalisis.getToken().equals("pCierra")){
         }else{
-            ErrorSintactico(preanalisis.getToken(), "LEE");
+            ErrorSintactico(preanalisis.getToken(),preanalisis.linea(), ". o )");
         }
     }
     
     public void EXP(){
-        if(preanalisis.getToken().equals("id")){
-            Emparejar("id");
-            OP1();
-            Emparejar("asignacion");
-            OP();
-            Emparejar("puntoComa");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "id");
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
+                Emparejar("id");
+                OP1();
+                Emparejar("asignacion");
+                OP();
+                Emparejar("puntoComa");
+            }else{
+                ErrorSintactico(preanalisis.getToken(),preanalisis.linea(), "id");
+            }    
         }
     }
     public void OP1(){
-        if(preanalisis.getToken().equals("punto")){
-            Emparejar("punto");
-            Emparejar("id");
-        }else if(preanalisis.getToken().equals("asignacion") || preanalisis.getToken().equals("puntoComa") || 
-                preanalisis.getToken().equals("mas") || preanalisis.getToken().equals("menos") ||
-                preanalisis.getToken().equals("entre") || preanalisis.getToken().equals("por")){
-            
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "., = o ;");
+        if(!Error){
+            if(preanalisis.getToken().equals("punto")){
+                Emparejar("punto");
+                Emparejar("id");
+            }else if(preanalisis.getToken().equals("asignacion") || preanalisis.getToken().equals("puntoComa") || 
+                    preanalisis.getToken().equals("mas") || preanalisis.getToken().equals("menos") ||
+                    preanalisis.getToken().equals("entre") || preanalisis.getToken().equals("por") || preanalisis.getToken().equals("PrMOD")){
+
+            }else{
+                ErrorSintactico(preanalisis.getToken(),preanalisis.linea(), "., = o ;");
+            }    
         }
     }
     public void OP(){
-        if(preanalisis.getToken().equals("num")){
-            Emparejar("num");
-            EXP2();
-        }else if(preanalisis.getToken().equals("id")){
-            Emparejar("id");
-            OP1();
-            EXP2();
-        }else if(preanalisis.getToken().equals("PrNULL")){
-            Emparejar("PrNULL");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "numero, id o NULL");
+        if(!Error){
+            if(preanalisis.getToken().equals("num")){
+                Emparejar("num");
+                EXP2();
+            }else if(preanalisis.getToken().equals("id")){
+                Emparejar("id");
+                OP1();
+                EXP2();
+            }else if(preanalisis.getToken().equals("PrNULL")){
+                Emparejar("PrNULL");
+            }else if(preanalisis.getToken().equals("comilla")){
+                Emparejar("comilla");
+                CAR();
+                Emparejar("comilla");
+            }else{
+                ErrorSintactico(preanalisis.getToken(),preanalisis.linea(), "numero, id, ' o NULL");
+            }    
         }
     }
     public void EXP2(){
-        if(preanalisis.getToken().equals("PrMOD") || 
-                preanalisis.getToken().equals("mas") || preanalisis.getToken().equals("menos") ||
-                preanalisis.getToken().equals("entre") || preanalisis.getToken().equals("por")){
-            OPERADOR();
-            OP();
-        }else if(preanalisis.getToken().equals("puntoComa")){
-            
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "MOD, +, -, * /");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrMOD") || 
+                    preanalisis.getToken().equals("mas") || preanalisis.getToken().equals("menos") ||
+                    preanalisis.getToken().equals("entre") || preanalisis.getToken().equals("por")){
+                OPERADOR();
+                OP();
+            }else if(preanalisis.getToken().equals("puntoComa")){
+
+            }else{
+                ErrorSintactico(preanalisis.getToken(),preanalisis.linea(), "MOD, +, -, * /");
+            }   
         }
     }
     public void OPERADOR(){
-        if(preanalisis.getToken().equals("PrMOD")){
-            Emparejar("PrMod");
-        }else if(preanalisis.getToken().equals("mas")){
-            Emparejar("mas");
-        }else if(preanalisis.getToken().equals("menos")){
-            Emparejar("menos");
-        }else if(preanalisis.getToken().equals("entre")){
-            Emparejar("entre");
-        }else if(preanalisis.getToken().equals("por")){
-            Emparejar("por");
-        }else{
-            ErrorSintactico(preanalisis.getToken(), "MOD, +, -, * /");
+        if(!Error){
+            if(preanalisis.getToken().equals("PrMOD")){
+                Emparejar("PrMOD");
+            }else if(preanalisis.getToken().equals("mas")){
+                Emparejar("mas");
+            }else if(preanalisis.getToken().equals("menos")){
+                Emparejar("menos");
+            }else if(preanalisis.getToken().equals("entre")){
+                Emparejar("entre");
+            }else if(preanalisis.getToken().equals("por")){
+                Emparejar("por");
+            }else{
+                ErrorSintactico(preanalisis.getToken(),preanalisis.linea(), "MOD, +, -, * /");
+            }    
         }
     }
-    public void ErrorSintactico(String lexema, String esperaba){
-        this.resultado.setText("Error Sintactico en la linea: se encontró: " + lexema + " y se esperaba: " + esperaba);
+    public void ErrorSintactico(String lexema, int linea, String esperaba){
+        this.resultado.append("Error Sintactico en la linea: "+ linea + " se encontró " + lexema + " y se esperaba: " + esperaba + "\n");
     }
     void Emparejar(String token){
-        if(token.equals(preanalisis.getToken())){
+        System.out.println("Token - " + token);
+            System.out.println("Preanalisis - " + preanalisis.getToken());
+        if(preanalisis.getToken().equals(token)){
+            System.out.println(token);
             preanalisis = Preanalisis();
-            System.out.println("Token: " + preanalisis.getToken());
+            //System.out.println("Token: " + preanalisis.getToken());
         }else{
-            ErrorSintactico(preanalisis.lexema(),token);
+            ErrorSintactico(preanalisis.lexema(), preanalisis.linea(),token);
+            Error = true;
         }
     }
     
