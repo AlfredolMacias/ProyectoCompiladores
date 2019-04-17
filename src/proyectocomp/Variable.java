@@ -42,7 +42,10 @@ public class Variable {
     public String tipo2(){
         return tipo2;
     }
-    public void setValor(String nvalor){
+    public void setValorString(String nvalor){
         valor = nvalor;
+    }        
+    public void setValorInt(int nvalor){
+        valorInt = nvalor;
     }        
 }
