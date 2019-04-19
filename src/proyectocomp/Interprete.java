@@ -682,7 +682,7 @@ public class Interprete extends javax.swing.JFrame {
                     String var = preanalisis.lexema();
                     Emparejar("id");
                     if(variables.containsKey(var)){
-                        ErrorSemantico(preanalisis.linea(),2);
+                        ErrorSemantico(preanalisis.linea(),1);
                     }else{
                         Variable v = new Variable(estVar, "NULL", preanalisis.linea(),"ESTRUCTURA");
                         variables.put(var, v);
@@ -690,7 +690,7 @@ public class Interprete extends javax.swing.JFrame {
                         VARIABLES(estVar);
                     }
                 }else{
-                    ErrorSemantico(preanalisis.linea(),1);
+                    ErrorSemantico(preanalisis.linea(),6);
                 }
                 
             }else{
@@ -714,7 +714,7 @@ public class Interprete extends javax.swing.JFrame {
                         VARIABLES(nomEst);
                     }
                 }else{
-                     ErrorSemantico(preanalisis.linea(),2);
+                     ErrorSemantico(preanalisis.linea(),6);
                 }
             }else if(preanalisis.getToken().equals("PrINICIO")){
                 
@@ -773,7 +773,7 @@ public class Interprete extends javax.swing.JFrame {
                         VARIABLES2();   
                     }
                 }else{
-                    ErrorSemantico(preanalisis.linea(),2);
+                    ErrorSemantico(preanalisis.linea(),6);
                 }
                 
             }else if(preanalisis.getToken().equals("PrINICIO")){
@@ -873,10 +873,10 @@ public class Interprete extends javax.swing.JFrame {
                                 
                             }
                         }else{
-                            ErrorSemantico(preanalisis.linea(),2);
+                            ErrorSemantico(preanalisis.linea(),6);
                         }
                     }else{
-                        ErrorSemantico(preanalisis.linea(),2);    
+                        ErrorSemantico(preanalisis.linea(),8);    
                     }
                 }else{
                     if(variables.containsKey(est)){
@@ -964,7 +964,7 @@ public class Interprete extends javax.swing.JFrame {
         }else if(estructuras.get(est).getCampo3().equals(var)){
             estructuras.get(est).setValor3(valor);
         }else{
-            ErrorSemantico(preanalisis.linea(), 8);
+            ErrorSemantico(preanalisis.linea(), 4);
         }
     }
     
@@ -1131,7 +1131,7 @@ public class Interprete extends javax.swing.JFrame {
                         }else if(tipo.equals("CARACTER")){
                             OP2String(varAsi, varOpc, buscar);
                         }else{
-                            ErrorSemantico(preanalisis.linea(), 10);
+                            ErrorSemantico(preanalisis.linea(), 8);
                         }
                         
                     }
@@ -1153,8 +1153,8 @@ public class Interprete extends javax.swing.JFrame {
                 }
             }else{
                 Mostrar();
-                System.out.println(variables.get(varAsi).getTipo());
-                System.out.println(varAsi);
+//                System.out.println(variables.get(varAsi).getTipo());
+//                System.out.println(varAsi);
                 if(estructuras.containsKey(variables.get(varAsi).getTipo())){
                     String tipo = buscarTipo(variables.get(varAsi).getTipo(), varOpc);
                     if(tipo.equals("APUNTADOR")){
@@ -1219,9 +1219,12 @@ public class Interprete extends javax.swing.JFrame {
             }                
         }else if(preanalisis.getToken().equals("puntoComa")){
             if(varOpc.equals("")){
-                System.out.println("VAROPC: " + varOpc + " - ");
-                Variable v = new Variable("VARIABLE", operador1, preanalisis.linea(), "int" );
-                variables.put(varAsi, v);
+                if(variables.containsKey(varAsi) && (variables.get(varAsi).getTipo().equals("CONSTANTE") || variables.get(varAsi).tipo2().equals("ESTRUCTURA"))){
+                    ErrorSemantico(preanalisis.linea(), 1);
+                }else{
+                    Variable v = new Variable("VARIABLE", operador1, preanalisis.linea(), "int" );
+                    variables.put(varAsi, v);
+                }
             }else{
                 if(variables.containsKey(varAsi) && (variables.get(varAsi).getTipo().equals("CONSTANTE") || variables.get(varAsi).getTipo().equals("ESTRUCTURA"))){
                     ErrorSemantico(preanalisis.linea(), 1); 
@@ -1297,7 +1300,7 @@ public class Interprete extends javax.swing.JFrame {
                                 ErrorSemantico(preanalisis.linea(), 8);
                             }
                         }else{
-                            ErrorSemantico(preanalisis.linea(), 8);
+                            ErrorSemantico(preanalisis.linea(), 6);
                         }
                     }
                 }else{
@@ -1429,7 +1432,7 @@ public class Interprete extends javax.swing.JFrame {
                     this.resultado.append("\nError Semantico en la linea " + linea + " - el campo ya existe\n");
                     break;
                 case 4:
-                    this.resultado.append("\nError Semantico en la linea " + linea + " - la variable no existe\n");
+                    this.resultado.append("\nError Semantico en la linea " + linea + " - el campo no existe\n");
                     break;
                 case 5:
                     this.resultado.append("\nError Semantico en la linea " + linea + " - la estructura ya existe\n");
