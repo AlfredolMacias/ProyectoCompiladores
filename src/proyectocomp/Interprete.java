@@ -317,10 +317,11 @@ public class Interprete extends javax.swing.JFrame {
             }
             estadoActual = existeTran(estadoActual,c);
             if(estadoActual == -2){
-                this.resultado.setText("Error Léxico en la linea " + linea);
+                this.resultado.setText("Error Léxico en la linea " + linea + ", no se reconoce el simbolo");
                 System.out.println("Error en la linea: " + linea);
                 tokens.add(new Token("Error", String.valueOf(c), linea));
                 estadoActual = 0;
+                Error = true;
             }else{
                 if(c != 'e'){
                     chars.add(content.charAt(cont));
@@ -527,6 +528,7 @@ public class Interprete extends javax.swing.JFrame {
                 Emparejar("id");
                 ESTVAR(estVar);
             }else if(preanalisis.getToken().equals("PrINICIO")){  
+                ErrorSemantico(preanalisis.linea(), 11);
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id O INICIO");
             }
@@ -709,15 +711,15 @@ public class Interprete extends javax.swing.JFrame {
                     if(variables.containsKey(Var)){
                         ErrorSemantico(preanalisis.linea(),1);
                     }else{
-                        Variable v = new Variable(Var, "", preanalisis.linea(),"ESTRUCTURA");
-                        variables.put(nomEst, v);
+                        Variable v = new Variable(nomEst, "", preanalisis.linea(),"ESTRUCTURA");
+                        variables.put(Var, v);
                         VARIABLES(nomEst);
                     }
                 }else{
                      ErrorSemantico(preanalisis.linea(),6);
                 }
             }else if(preanalisis.getToken().equals("PrINICIO")){
-                
+                ErrorSemantico(preanalisis.linea(), 11);
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id");
             }
@@ -777,7 +779,7 @@ public class Interprete extends javax.swing.JFrame {
                 }
                 
             }else if(preanalisis.getToken().equals("PrINICIO")){
-
+                buscarVariable();
             }else{
                 ErrorSintactico(preanalisis.getToken(),preanalisis.linea(), "id O INICIO");
             }    
@@ -848,53 +850,130 @@ public class Interprete extends javax.swing.JFrame {
     
     public void CONDICION(){
         if(!Error){
-        if(preanalisis.getToken().equals("id") || preanalisis.getToken().equals("num") || preanalisis.getToken().equals("'")){
-                VARCON();
+        if(preanalisis.getToken().equals("id") || preanalisis.getToken().equals("num") || preanalisis.getToken().equals("comilla")){
+                String v1 = VARCON();
                 CONDICIONAL();
-                VARCON();
+                String v2 = VARCON1();
+                System.out.println("V1: " + v1 + " -- V2" + v2);
+                if(!v1.equals(v2)){
+                    ErrorSemantico(preanalisis.linea(), 8);
+                }
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
             }   
         }
     }
-    public void VARCON(){
+    public String VARCON(){
         if(!Error){
             if(preanalisis.getToken().equals("id")){
                 String est = preanalisis.lexema();
                 Emparejar("id");
                 String var = AP();
                 if(!var.equals("")){
-                    if(variables.containsKey(est) && variables.get(est).tipo2().equals("ESTRUCTURA")){
-                        if(estructuras.containsKey(variables.get(est).getTipo())){
-                            String buscar = buscarCampo(variables.get(est).getTipo(), var);
-                            if(buscar.equals("Error")){
-                                ErrorSemantico(preanalisis.linea(),4);
+                    if(variables.containsKey(est)){
+                        if(variables.get(est).tipo2().equals("ESTRUCTURA")){
+                            if(estructuras.containsKey(variables.get(est).getTipo())){
+                                String buscar = buscarCampo(variables.get(est).getTipo(), var);
+                                if(buscar.equals("Error")){
+                                    ErrorSemantico(preanalisis.linea(),4);
+                                }else{
+                                    String tip = buscarTipo(variables.get(est).getTipo(), var);
+                                    System.out.println("TIPO " + tip);
+                                    if(tip.equals("ENTERO")){
+                                        return "int";
+                                    }else if(tip.equals("CARACTER")){
+                                        return "String";
+                                    }else{
+                                        return buscarTipo(variables.get(est).getTipo(), var);
+                                    }
+                                }
                             }else{
-                                
-                            }
+                                ErrorSemantico(preanalisis.linea(),6);
+                            }    
+                        }else if(variables.get(est).tipo2().equals("int")){
+                            return "int";
                         }else{
-                            ErrorSemantico(preanalisis.linea(),6);
+                            ErrorSemantico(preanalisis.linea(),8);    
                         }
                     }else{
-                        ErrorSemantico(preanalisis.linea(),8);    
+                        ErrorSemantico(preanalisis.linea(),6);    
                     }
                 }else{
                     if(variables.containsKey(est)){
-                        
+                        return variables.get(est).tipo2();
                     }else{
                         ErrorSemantico(preanalisis.linea(),2);
                     }
                 }
             }else if(preanalisis.getToken().equals("num")){
                 Emparejar("num");
-            }else if(preanalisis.getToken().equals("'")){
+                return "int";
+            }else if(preanalisis.getToken().equals("comilla")){
                 Emparejar("comilla");
                 CAR();
                 Emparejar("comilla");
+                return "String";
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
             }   
         }
+        return "Error";
+    }
+    public String VARCON1(){
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
+                String est = preanalisis.lexema();
+                Emparejar("id");
+                String var = AP();
+                if(!var.equals("")){
+                    if(variables.containsKey(est)){
+                        if(variables.get(est).tipo2().equals("ESTRUCTURA")){
+                            if(estructuras.containsKey(variables.get(est).getTipo())){
+                                String buscar = buscarCampo(variables.get(est).getTipo(), var);
+                                if(buscar.equals("Error")){
+                                    ErrorSemantico(preanalisis.linea(),4);
+                                }else{
+                                    String tip = buscarTipo(variables.get(est).getTipo(), var);
+                                    System.out.println("TIPO " + tip);
+                                    if(tip.equals("ENTERO")){
+                                        return "int";
+                                    }else if(tip.equals("CARACTER")){
+                                        return "String";
+                                    }else{
+                                        return buscarTipo(variables.get(est).getTipo(), var);
+                                    }
+                                }
+                            }else{
+                                ErrorSemantico(preanalisis.linea(),6);
+                            }    
+                        }else if(variables.get(est).tipo2().equals("int")){
+                            return "int";
+                        }else{
+                            ErrorSemantico(preanalisis.linea(),8);    
+                        }
+                    }else{
+                        ErrorSemantico(preanalisis.linea(),6);    
+                    }
+                }else{
+                    if(variables.containsKey(est)){
+                        return variables.get(est).tipo2();
+                    }else{
+                        ErrorSemantico(preanalisis.linea(),2);
+                    }
+                }
+            }else if(preanalisis.getToken().equals("num")){
+                Emparejar("num");
+                return "int";
+            }else if(preanalisis.getToken().equals("comilla")){
+                Emparejar("comilla");
+                CAR();
+                Emparejar("comilla");
+                return "String";
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
+            }   
+        }
+        return "Error";
     }
     public String AP(){
         if(!Error){
@@ -1008,20 +1087,30 @@ public class Interprete extends javax.swing.JFrame {
                 String var = APCONT();
                 if(var.equals("")){
                     if(variables.containsKey(VarEst)){
-                        if(variables.get(VarEst).tipo2().equals("int")){
-                            return String.valueOf(variables.get(VarEst).getValorInt());
+                        if(!variables.get(VarEst).tipo2().equals("ESTRUCTURA")){
+                            if(variables.get(VarEst).tipo2().equals("int")){
+                                return String.valueOf(variables.get(VarEst).getValorInt());
+                            }else{
+                                return variables.get(VarEst).getValor();
+                            }
                         }else{
-                            return variables.get(VarEst).getValor();
+                            ErrorSemantico(preanalisis.linea(), 9);
                         }
+                        
                     }else{
                         ErrorSemantico(preanalisis.linea(), 2);
                     }
                 }else{
-                    if(estructuras.containsKey(variables.get(VarEst).getTipo())){
-                        return buscarCampo(variables.get(VarEst).getTipo(), var);
+                    if(variables.containsKey(VarEst)){
+                        if(estructuras.containsKey(variables.get(VarEst).getTipo())){
+                            return buscarCampo(variables.get(VarEst).getTipo(), var);
+                        }else{
+                            ErrorSemantico(preanalisis.linea(), 6);
+                        }
                     }else{
                         ErrorSemantico(preanalisis.linea(), 6);
                     }
+                    
                 }
             }else if(preanalisis.getToken().equals("comilla")){
                 Emparejar("comilla");
@@ -1105,7 +1194,20 @@ public class Interprete extends javax.swing.JFrame {
                         OP2Int(varAsi, varOpc, operador1Int);
                     }else{
                         if(variables.containsKey(operador1)){
-                            OP2String(varAsi, varOpc, variables.get(operador1).getValor());
+                            if(variables.get(operador1).tipo2().equals("ESTRUCTURA")){
+                                if(varOpc.equals("")){
+                                    ErrorSemantico(preanalisis.linea(), 8);
+                                }else{
+                                    String buscar = buscarTipo(variables.get(varAsi).getTipo(), varOpc);
+                                    if(buscar.equals("APUNTADOR")){
+                                        actualizarValor(variables.get(varAsi).getTipo(), varOpc, operador1);
+                                    }else{
+                                        ErrorSemantico(preanalisis.linea(), 8);
+                                    }
+                                }
+                            }else{
+                                OP2String(varAsi, varOpc, variables.get(operador1).getValor());
+                            }
                         }else{
                             ErrorSemantico(preanalisis.linea(), 2);
                         }
@@ -1141,7 +1243,7 @@ public class Interprete extends javax.swing.JFrame {
             }
         }else if(preanalisis.getToken().equals("PrNULL")){
             if(varOpc.equals("")){
-                if(variables.containsKey(varAsi)){
+                /*if(variables.containsKey(varAsi)){
                     if(variables.get(varAsi).tipo2().equals("ESTRUCTURA")){
                         Emparejar("PrNULL");    
                         variables.get(varAsi).setValorString("NULL");
@@ -1150,22 +1252,28 @@ public class Interprete extends javax.swing.JFrame {
                     }
                 }else{
                     ErrorSemantico(preanalisis.linea(),2);
-                }
+                }*/
+                ErrorSemantico(preanalisis.linea(), 8);
             }else{
                 Mostrar();
 //                System.out.println(variables.get(varAsi).getTipo());
 //                System.out.println(varAsi);
-                if(estructuras.containsKey(variables.get(varAsi).getTipo())){
-                    String tipo = buscarTipo(variables.get(varAsi).getTipo(), varOpc);
-                    if(tipo.equals("APUNTADOR")){
-                        Emparejar("PrNULL");
-                        actualizarValor(variables.get(varAsi).getTipo(), varOpc, "NULL");
+                if(variables.containsKey(varAsi)){
+                    if(estructuras.containsKey(variables.get(varAsi).getTipo())){
+                        String tipo = buscarTipo(variables.get(varAsi).getTipo(), varOpc);
+                        if(tipo.equals("APUNTADOR")){
+                            Emparejar("PrNULL");
+                            actualizarValor(variables.get(varAsi).getTipo(), varOpc, "NULL");
+                        }else{
+                            ErrorSemantico(preanalisis.linea(), 8);
+                        }
                     }else{
-                        ErrorSemantico(preanalisis.linea(), 8);
+                        ErrorSemantico(preanalisis.linea(),6);
                     }
                 }else{
-                    ErrorSemantico(preanalisis.linea(),6);
+                    ErrorSemantico(preanalisis.linea(), 6);
                 }
+                
             }
             
             
@@ -1229,12 +1337,15 @@ public class Interprete extends javax.swing.JFrame {
                 if(variables.containsKey(varAsi) && (variables.get(varAsi).getTipo().equals("CONSTANTE") || variables.get(varAsi).getTipo().equals("ESTRUCTURA"))){
                     ErrorSemantico(preanalisis.linea(), 1); 
                 }else{
-                    if(buscarTipo(variables.get(varAsi).getTipo(), varOpc).equals("ENTERO")){
-                        actualizarValor(variables.get(varAsi).getTipo(), varOpc, String.valueOf(operador1));
+                    if(variables.containsKey(varAsi)){
+                        if(buscarTipo(variables.get(varAsi).getTipo(), varOpc).equals("ENTERO")){
+                            actualizarValor(variables.get(varAsi).getTipo(), varOpc, String.valueOf(operador1));
+                        }else{
+                            ErrorSemantico(preanalisis.linea(), 8);
+                        }
                     }else{
-                        ErrorSemantico(preanalisis.linea(), 8);
+                        ErrorSemantico(preanalisis.linea(), 2);
                     }
-                    
                 }
             }
         }else{
@@ -1261,11 +1372,14 @@ public class Interprete extends javax.swing.JFrame {
     public void OP2String(String varAsi, String varOpc, String operador1){
         if(preanalisis.getToken().equals("mas") || preanalisis.getToken().equals("menos") ||
                     preanalisis.getToken().equals("entre") || preanalisis.getToken().equals("por") || preanalisis.getToken().equals("PrMOD")){
-            OPERADOR();
+            int operador = OPERADOR();
+            if(operador != 0){
+                ErrorSemantico(preanalisis.linea(), 10);
+            }
             OP3();
         }else if(preanalisis.getToken().equals("puntoComa")){
-            Variable v = new Variable("VARIABLE", operador1, preanalisis.linea(), "String");
-            variables.put(varAsi, v);
+                Variable v = new Variable("VARIABLE", operador1, preanalisis.linea(), "String");
+                variables.put(varAsi, v);
         }else{
             ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "operador o ;");
         }
@@ -1446,6 +1560,15 @@ public class Interprete extends javax.swing.JFrame {
                 case 8:
                     this.resultado.append("\nError Semantico en la linea " + linea + " - los tipos no coinciden\n");
                     break;
+                case 9:
+                    this.resultado.append("\nError Semantico en la linea " + linea + " - no se puede escribir una variable de tipo estructura\n");
+                    break;
+                case 10:
+                    this.resultado.append("\nError Semantico en la linea " + linea + " - no se pueden realizar operaciones con esos tipos de datos\n");
+                    break;
+                case 11:
+                    this.resultado.append("\nError Semantico en la linea " + linea + " - se debe declara al menos una varible de tipo estructura para cada estructura existente\n");
+                    break;
                 default: 
                     this.resultado.append("\nError Semantico en la linea " + linea);
                     break;
@@ -1455,6 +1578,32 @@ public class Interprete extends javax.swing.JFrame {
         }
     }
     
+    public void buscarVariable(){
+        boolean encontro = false;
+        boolean encontro2 = false;
+        int i = 0;
+        for(Map.Entry<String, Estructura> entry: estructuras.entrySet()){
+            i++;
+            for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                if(i == 1){
+                    if(entry2.getValue().getTipo().equals(entry.getKey())){
+                        encontro = true;
+                    }
+                }else{
+                    if(entry2.getValue().getTipo().equals(entry.getKey())){
+                        encontro2 = true;
+                    }    
+                }
+            }
+        }
+        if(i == 1 && encontro == false){
+            ErrorSemantico(preanalisis.linea(), 11);
+        }
+        if(i > 1 && (encontro == false || encontro2 == false)){
+            ErrorSemantico(preanalisis.linea(), 11);
+            
+        }
+    }
     public void Mostrar(){
         System.out.println("\n\n ----- HASH MAP ----");
         for(Map.Entry<String, Variable> entry: variables.entrySet()){

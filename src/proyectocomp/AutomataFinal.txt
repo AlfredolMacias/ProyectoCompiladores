@@ -86,7 +86,8 @@ PROGRAMA INICIO FIN CONSTANTES ESTRUCTURAS MOD ENTERO CARACTER APUNTADOR NULL SI
 11 14 e 0 ""
 14 -1 r 0 menor
 0 15 > 0 ""
-15 16 = 0 mayorIgual
+15 16 = 0 ""
+16 -1 r 0 mayorIgual
 15 17 - 0 ""
 15 17 + 0 ""
 15 17 * 0 ""
