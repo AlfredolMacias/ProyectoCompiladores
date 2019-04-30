@@ -5,6 +5,8 @@
  */
 package proyectocomp;
 
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -46,6 +48,8 @@ public class Interprete extends javax.swing.JFrame {
     int estadoActual = 0;
     HashMap<String,Variable> variables = new HashMap<String, Variable>();
     HashMap<String, Estructura> estructuras = new HashMap<String, Estructura>();
+    int est1 = 0;
+    int est2 = 0;
     public Interprete() {
         setExtendedState(MAXIMIZED_BOTH);
         initComponents();
@@ -157,6 +161,8 @@ public class Interprete extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
+        est1 = 0;
+        est2 = 0;
         variables.clear();
         estructuras.clear();
         cont = 0;
@@ -166,6 +172,7 @@ public class Interprete extends javax.swing.JFrame {
         preanalisis = Preanalisis();
         this.resultado.setText("");
         Error = false;
+        repaint();
         A();
         if(preanalisis.getToken() != "finFichero"){
             ErrorSintactico(preanalisis.lexema(), preanalisis.linea(), "Fin de Fichero");
@@ -206,10 +213,232 @@ public class Interprete extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Interprete().setVisible(true);
+                //repaint();
             }
-        });
-        
-        
+        });   
+    }
+    
+    public void NumEst(){
+       est1 = 0;
+       est2 = 0;
+       int i = 0;
+       for(Map.Entry<String, Estructura> entry: estructuras.entrySet()){
+           if(!variables.containsKey(entry.getKey())){
+                i++;
+                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                    if(i == 1){
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            est1++;
+                        }
+                    }else{
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            est2++;
+                        }    
+                    }
+                }    
+            }else{
+                if(!variables.get(entry.getKey()).tipo2().equals("ESTRUCTURA")){
+                  i++;
+                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                    if(i == 1){
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            est1++;
+                        }
+                    }else{
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            est2++;
+                        }    
+                    }
+                }   
+                }
+           }
+        }
+       System.out.println("NUM 1: "  + est1 + "  -  NUM 2: " + est2);
+    }
+    
+    public void paint(Graphics g){
+        Graphics2D g2d = (Graphics2D) g;
+        super.paint(g);
+        int i = 0;
+        int fig1 = 0;
+        int fig2 = 0;
+        for(Map.Entry<String, Estructura> entry: estructuras.entrySet()){
+           if(!variables.containsKey(entry.getKey())){
+                i++;
+                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                    if(i == 1){
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            if (fig1 == 0){
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        Estructura1.Figura1(g,0,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        Estructura1.Figura1(g,0,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    Estructura1.Figura1(g,0,valor1);
+                                }
+                            }else{
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        int mover = 160*fig1;
+                                        Estructura1.Figura1(g,mover,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        int mover = 160*fig1;
+                                        Estructura1.Figura1(g,mover,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    int mover = 160*fig1;
+                                    Estructura1.Figura1(g,mover,valor1);
+                                }
+                            }
+                            fig1++;
+                        }
+                    }else{
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            if (fig2 == 0){
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        Estructura1.Figura2(g,0,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        Estructura1.Figura2(g,0,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    Estructura1.Figura2(g,0,valor1);
+                                }
+                            }else{
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        int mover = 160*fig2;
+                                        Estructura1.Figura2(g,mover,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        int mover = 160*fig2;
+                                        Estructura1.Figura2(g,mover,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    int mover = 160*fig2;
+                                    Estructura1.Figura2(g,mover,valor1);
+                                }
+                            }
+                            fig2++;
+                        }    
+                    }
+                }    
+            }else{
+                if(!variables.get(entry.getKey()).tipo2().equals("ESTRUCTURA")){
+                  i++;
+                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                    if(i == 1){
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            if (fig1 == 0){
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        Estructura1.Figura1(g,0,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        Estructura1.Figura1(g,0,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    Estructura1.Figura1(g,0,valor1);
+                                }
+                            }else{
+                                if(entry2.getValue().getTipo().equals(entry.getKey())){
+                                    if(entry.getValue().getCampo2() != null){
+                                        if(entry.getValue().getCampo3() != null){
+                                            String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                            String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                            String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                            int mover = 160*fig1;
+                                            Estructura1.Figura1(g,mover,valor1,valor2,valor3);
+                                        }else{
+                                            String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                            String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                            int mover = 160*fig1;
+                                            Estructura1.Figura1(g,mover,valor1,valor2);
+                                        }
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        int mover = 160*fig1;
+                                        Estructura1.Figura1(g,mover,valor1);
+                                    }
+                                }
+                            }
+                            fig1++;
+                        }
+                    }else{
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            if (fig2 == 0){
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        Estructura1.Figura2(g,0,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        Estructura1.Figura2(g,0,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    Estructura1.Figura2(g,0,valor1);
+                                }
+                            }else{
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        int mover = 160*fig2;
+                                        Estructura1.Figura2(g,mover,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        int mover = 160*fig2;
+                                        Estructura1.Figura2(g,mover,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    int mover = 160*fig2;
+                                    Estructura1.Figura2(g,mover,valor1);
+                                }
+                            }
+                            fig2++;
+                        }
+                    }
+                }
+                }
+           }
+        }
     }
     
     //** AUTOMATA **\\
@@ -226,7 +455,7 @@ public class Interprete extends javax.swing.JFrame {
         boolean AFD = true;
         int i = 0;
         try{
-            File abre = new File("C:\\Users\\Fredy-pc\\Documents\\NetBeansProjects\\ProyectoComp\\src\\proyectocomp\\AutomataFinal.txt");
+            File abre = new File("C:\\Users\\User\\Desktop\\ProyectoCompiladores\\src\\proyectocomp\\AutomataFinal.txt");
             if(abre != null){
                 FileReader archivos=new FileReader(abre);
                 BufferedReader lee=new BufferedReader(archivos);
@@ -578,7 +807,15 @@ public class Interprete extends javax.swing.JFrame {
                     SEP3(nomEst, tipo, nomCam, tipo2, nomCam2);
                 }
             }else if(preanalisis.getToken().equals("lCierra")){
-                Estructura est = new Estructura(nomCam, "", tipo);
+                String valor = "";
+                if(tipo.equals("ENTERO")){
+                    valor = "0";
+                }else if(tipo.equals("APUNTADOR")){
+                    valor = "NULL";
+                }else if(tipo.equals("CARACTER")){
+                    valor = "''";
+                }
+                Estructura est = new Estructura(nomCam, valor, tipo);
                 estructuras.put(nomEst, est);
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "ENTERO, APUNTADO, CARACTER O }");
@@ -595,7 +832,15 @@ public class Interprete extends javax.swing.JFrame {
                 String nomCam3 = preanalisis.lexema();
                 Emparejar("id");
                 if(!nomCam3.equals(nomCam) || nomCam3.equals(nomCam2)){
-                    Estructura est = new Estructura(nomCam, "",tipo,nomCam2, "", tipo, nomCam3, "", tipo);
+                    String valor = "";
+                    if(tipo.equals("ENTERO")){
+                        valor = "0";
+                    }else if(tipo.equals("APUNTADOR")){
+                        valor = "NULL";
+                    }else if(tipo.equals("CARACTER")){
+                        valor = "''";
+                    }
+                    Estructura est = new Estructura(nomCam, valor,tipo,nomCam2, valor, tipo, nomCam3, valor, tipo);
                     estructuras.put(nomEst, est);
                     Emparejar("puntoComa");
                 }else{
@@ -620,7 +865,23 @@ public class Interprete extends javax.swing.JFrame {
                 if(nomCam3.equals(nomCam) || nomCam3.equals(nomCam2)){
                     ErrorSemantico(preanalisis.linea(),3);
                 }else{
-                    Estructura est = new Estructura(nomCam, "", tipo, nomCam2, "", tipo2, nomCam3, "", tipo2);
+                    String valor = "";
+                    if(tipo.equals("ENTERO")){
+                        valor = "0";
+                    }else if(tipo.equals("APUNTADOR")){
+                        valor = "NULL";
+                    }else if(tipo.equals("CARACTER")){
+                        valor = "''";
+                    }
+                    String valor2 = "";
+                    if(tipo2.equals("ENTERO")){
+                        valor2 = "0";
+                    }else if(tipo2.equals("APUNTADOR")){
+                        valor2 = "NULL";
+                    }else if(tipo2.equals("CARACTER")){
+                        valor2 = "''";
+                    }
+                    Estructura est = new Estructura(nomCam, valor, tipo, nomCam2, valor2, tipo2, nomCam3, valor2, tipo2);
                     estructuras.put(nomEst, est);
                     Emparejar("puntoComa");   
                 }
@@ -638,12 +899,52 @@ public class Interprete extends javax.swing.JFrame {
                 if(nomCam3.equals(nomCam) || nomCam3.equals(nomCam2)){
                     ErrorSemantico(preanalisis.linea(),3);
                 }else{
-                    Estructura est = new Estructura(nomCam, "", tipo, nomCam2, "", tipo2, nomCam3, "", tipo3 );
+                    String valor = "";
+                    if(tipo.equals("ENTERO")){
+                        valor = "0";
+                    }else if(tipo.equals("APUNTADOR")){
+                        valor = "NULL";
+                    }else if(tipo.equals("CARACTER")){
+                        valor = "''";
+                    }
+                    String valor2 = "";
+                    if(tipo2.equals("ENTERO")){
+                        valor2 = "0";
+                    }else if(tipo2.equals("APUNTADOR")){
+                        valor2 = "NULL";
+                    }else if(tipo2.equals("CARACTER")){
+                        valor2 = "''";
+                    }
+                    String valor3 = "";
+                    if(tipo3.equals("ENTERO")){
+                        valor3 = "0";
+                    }else if(tipo3.equals("APUNTADOR")){
+                        valor3 = "NULL";
+                    }else if(tipo3.equals("CARACTER")){
+                        valor3 = "''";
+                    }
+                    Estructura est = new Estructura(nomCam, valor, tipo, nomCam2, valor2, tipo2, nomCam3, valor3, tipo3 );
                     estructuras.put(nomEst, est);
                     Emparejar("puntoComa");   
                 }
             }else if(preanalisis.getToken().equals("lCierra")){
-                Estructura est = new Estructura(nomCam, "", tipo, nomCam2, "", tipo2);
+                String valor = "";
+                if(tipo.equals("ENTERO")){
+                    valor = "0";
+                }else if(tipo.equals("APUNTADOR")){
+                    valor = "NULL";
+                }else if(tipo.equals("CARACTER")){
+                    valor = "''";
+                }
+                String valor2 = "";
+                if(tipo2.equals("ENTERO")){
+                    valor2 = "0";
+                }else if(tipo2.equals("APUNTADOR")){
+                    valor2 = "NULL";
+                }else if(tipo2.equals("CARACTER")){
+                    valor2 = "''";
+                }
+                Estructura est = new Estructura(nomCam, valor, tipo, nomCam2, valor2, tipo2);
                 estructuras.put(nomEst, est);
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "ENTERO, APUNTADO, CARACTER O }");
@@ -692,6 +993,7 @@ public class Interprete extends javax.swing.JFrame {
                         Estructura d = estructuras.get(estVar);
                         estructuras.put(var, d);
                         Mostrar();
+                        NumEst();
                         VARIABLES(estVar);
                     }
                 }else{
@@ -718,6 +1020,7 @@ public class Interprete extends javax.swing.JFrame {
                         variables.put(Var, v);
                         Estructura d = estructuras.get(nomEst);
                         estructuras.put(Var, d);
+                        NumEst();
                         VARIABLES(nomEst);
                     }
                 }else{
@@ -755,6 +1058,7 @@ public class Interprete extends javax.swing.JFrame {
                     Estructura d = estructuras.get(nomEst);
                     estructuras.put(nomVar, d);
                     Mostrar();
+                    NumEst();
                     VAR2(nomEst);   
                 }
             }else if( preanalisis.getToken().equals("puntoComa")){
@@ -780,6 +1084,7 @@ public class Interprete extends javax.swing.JFrame {
                         Estructura d = estructuras.get(nomEst);
                         estructuras.put(nomVar, d);
                         Mostrar();
+                        NumEst();
                         Emparejar("puntoComa");
                         VARIABLES2();   
                     }
@@ -1084,6 +1389,7 @@ public class Interprete extends javax.swing.JFrame {
         }else{
             ErrorSemantico(preanalisis.linea(), 4);
         }
+        repaint();
     }
     
     public void MIENTRAS(){
