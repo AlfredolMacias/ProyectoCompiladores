@@ -5,6 +5,8 @@
  */
 package proyectocomp;
 
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -30,6 +32,7 @@ public class Interprete extends javax.swing.JFrame {
      */
     ArrayList<Character> chars = new ArrayList<Character>();
     int linea = 1;
+    boolean entro = true;
     Token preanalisis = null;
     String lexema = "";
     StringBuilder sb = new StringBuilder();
@@ -46,6 +49,8 @@ public class Interprete extends javax.swing.JFrame {
     int estadoActual = 0;
     HashMap<String,Variable> variables = new HashMap<String, Variable>();
     HashMap<String, Estructura> estructuras = new HashMap<String, Estructura>();
+    int est1 = 0;
+    int est2 = 0;
     public Interprete() {
         setExtendedState(MAXIMIZED_BOTH);
         initComponents();
@@ -157,6 +162,8 @@ public class Interprete extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
+        est1 = 0;
+        est2 = 0;
         variables.clear();
         estructuras.clear();
         cont = 0;
@@ -166,6 +173,7 @@ public class Interprete extends javax.swing.JFrame {
         preanalisis = Preanalisis();
         this.resultado.setText("");
         Error = false;
+        repaint();
         A();
         if(preanalisis.getToken() != "finFichero"){
             ErrorSintactico(preanalisis.lexema(), preanalisis.linea(), "Fin de Fichero");
@@ -208,10 +216,232 @@ public class Interprete extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Interprete().setVisible(true);
+                //repaint();
             }
-        });
-        
-        
+        });   
+    }
+    
+    public void NumEst(){
+       est1 = 0;
+       est2 = 0;
+       int i = 0;
+       for(Map.Entry<String, Estructura> entry: estructuras.entrySet()){
+           if(!variables.containsKey(entry.getKey())){
+                i++;
+                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                    if(i == 1){
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            est1++;
+                        }
+                    }else{
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            est2++;
+                        }    
+                    }
+                }    
+            }else{
+                if(!variables.get(entry.getKey()).tipo2().equals("ESTRUCTURA")){
+                  i++;
+                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                    if(i == 1){
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            est1++;
+                        }
+                    }else{
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            est2++;
+                        }    
+                    }
+                }   
+                }
+           }
+        }
+     //  System.out.println("NUM 1: "  + est1 + "  -  NUM 2: " + est2);
+    }
+    
+    public void paint(Graphics g){
+        Graphics2D g2d = (Graphics2D) g;
+        super.paint(g);
+        int i = 0;
+        int fig1 = 0;
+        int fig2 = 0;
+        for(Map.Entry<String, Estructura> entry: estructuras.entrySet()){
+           if(!variables.containsKey(entry.getKey())){
+                i++;
+                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                    if(i == 1){
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            if (fig1 == 0){
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        Estructura1.Figura1(g,0,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        Estructura1.Figura1(g,0,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    Estructura1.Figura1(g,0,valor1);
+                                }
+                            }else{
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        int mover = 160*fig1;
+                                        Estructura1.Figura1(g,mover,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        int mover = 160*fig1;
+                                        Estructura1.Figura1(g,mover,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    int mover = 160*fig1;
+                                    Estructura1.Figura1(g,mover,valor1);
+                                }
+                            }
+                            fig1++;
+                        }
+                    }else{
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            if (fig2 == 0){
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        Estructura1.Figura2(g,0,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        Estructura1.Figura2(g,0,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    Estructura1.Figura2(g,0,valor1);
+                                }
+                            }else{
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        int mover = 160*fig2;
+                                        Estructura1.Figura2(g,mover,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        int mover = 160*fig2;
+                                        Estructura1.Figura2(g,mover,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    int mover = 160*fig2;
+                                    Estructura1.Figura2(g,mover,valor1);
+                                }
+                            }
+                            fig2++;
+                        }    
+                    }
+                }    
+            }else{
+                if(!variables.get(entry.getKey()).tipo2().equals("ESTRUCTURA")){
+                  i++;
+                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
+                    if(i == 1){
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            if (fig1 == 0){
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        Estructura1.Figura1(g,0,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        Estructura1.Figura1(g,0,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    Estructura1.Figura1(g,0,valor1);
+                                }
+                            }else{
+                                if(entry2.getValue().getTipo().equals(entry.getKey())){
+                                    if(entry.getValue().getCampo2() != null){
+                                        if(entry.getValue().getCampo3() != null){
+                                            String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                            String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                            String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                            int mover = 160*fig1;
+                                            Estructura1.Figura1(g,mover,valor1,valor2,valor3);
+                                        }else{
+                                            String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                            String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                            int mover = 160*fig1;
+                                            Estructura1.Figura1(g,mover,valor1,valor2);
+                                        }
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        int mover = 160*fig1;
+                                        Estructura1.Figura1(g,mover,valor1);
+                                    }
+                                }
+                            }
+                            fig1++;
+                        }
+                    }else{
+                        if(entry2.getValue().getTipo().equals(entry.getKey())){
+                            if (fig2 == 0){
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        Estructura1.Figura2(g,0,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        Estructura1.Figura2(g,0,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    Estructura1.Figura2(g,0,valor1);
+                                }
+                            }else{
+                                if(entry.getValue().getCampo2() != null){
+                                    if(entry.getValue().getCampo3() != null){
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        String valor3 = estructuras.get(entry2.getKey()).getValor3();
+                                        int mover = 160*fig2;
+                                        Estructura1.Figura2(g,mover,valor1,valor2,valor3);
+                                    }else{
+                                        String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                        String valor2 = estructuras.get(entry2.getKey()).getValor2();
+                                        int mover = 160*fig2;
+                                        Estructura1.Figura2(g,mover,valor1,valor2);
+                                    }
+                                }else{
+                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
+                                    int mover = 160*fig2;
+                                    Estructura1.Figura2(g,mover,valor1);
+                                }
+                            }
+                            fig2++;
+                        }
+                    }
+                }
+                }
+           }
+        }
     }
     
     //** AUTOMATA **\\
@@ -476,11 +706,13 @@ public class Interprete extends javax.swing.JFrame {
             }
         }
     }
-    public void CAR(){
+    public String CAR(){
         if(!Error){
             if(preanalisis.getToken().equals("id") || preanalisis.getToken().equals("num")){
                 if(preanalisis.lexema().length() == 1){
+                    String car = preanalisis.lexema();
                     preanalisis = Preanalisis();
+                    return car;
                 }else{
                     ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "caracter");
                 }
@@ -488,6 +720,7 @@ public class Interprete extends javax.swing.JFrame {
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id");
             }
         }
+        return "";
     }
     public void CAR(String nomVar){
         if(!Error){
@@ -608,10 +841,10 @@ public class Interprete extends javax.swing.JFrame {
                     String valor = "";
                     if(tipo.equals("ENTERO")){
                         valor = "0";
+                    }else if(tipo.equals("APUNTADOR")){
+                        valor = "NULL";
                     }else if(tipo.equals("CARACTER")){
                         valor = "''";
-                    }else if(tipo.equals("APUNTADOR")){
-                        valor = "null";
                     }
                     Estructura est = new Estructura(nomCam, valor,tipo,nomCam2, valor, tipo, nomCam3, valor, tipo);
                     estructuras.put(nomEst, est);
@@ -638,23 +871,23 @@ public class Interprete extends javax.swing.JFrame {
                 if(nomCam3.equals(nomCam) || nomCam3.equals(nomCam2)){
                     ErrorSemantico(preanalisis.linea(),3);
                 }else{
-                    String valor1 = "";
+                    String valor = "";
                     if(tipo.equals("ENTERO")){
-                        valor1 = "0";
-                    }else if(tipo.equals("CARACTER")){
-                        valor1 = "''";
+                        valor = "0";
                     }else if(tipo.equals("APUNTADOR")){
-                        valor1 = "null";
+                        valor = "NULL";
+                    }else if(tipo.equals("CARACTER")){
+                        valor = "''";
                     }
-                    String valor2= "";
+                    String valor2 = "";
                     if(tipo2.equals("ENTERO")){
                         valor2 = "0";
+                    }else if(tipo2.equals("APUNTADOR")){
+                        valor2 = "NULL";
                     }else if(tipo2.equals("CARACTER")){
                         valor2 = "''";
-                    }else if(tipo2.equals("APUNTADOR")){
-                        valor2 = "null";
                     }
-                    Estructura est = new Estructura(nomCam, valor1, tipo, nomCam2, valor2, tipo2, nomCam3, valor2, tipo2);
+                    Estructura est = new Estructura(nomCam, valor, tipo, nomCam2, valor2, tipo2, nomCam3, valor2, tipo2);
                     estructuras.put(nomEst, est);
                     Emparejar("puntoComa");   
                 }
@@ -675,26 +908,26 @@ public class Interprete extends javax.swing.JFrame {
                     String valor = "";
                     if(tipo.equals("ENTERO")){
                         valor = "0";
+                    }else if(tipo.equals("APUNTADOR")){
+                        valor = "NULL";
                     }else if(tipo.equals("CARACTER")){
                         valor = "''";
-                    }else if(tipo.equals("APUNTADOR")){
-                        valor = "null";
                     }
                     String valor2 = "";
                     if(tipo2.equals("ENTERO")){
                         valor2 = "0";
+                    }else if(tipo2.equals("APUNTADOR")){
+                        valor2 = "NULL";
                     }else if(tipo2.equals("CARACTER")){
                         valor2 = "''";
-                    }else if(tipo2.equals("APUNTADOR")){
-                        valor2 = "null";
                     }
                     String valor3 = "";
                     if(tipo3.equals("ENTERO")){
                         valor3 = "0";
+                    }else if(tipo3.equals("APUNTADOR")){
+                        valor3 = "NULL";
                     }else if(tipo3.equals("CARACTER")){
                         valor3 = "''";
-                    }else if(tipo.equals("APUNTADOR")){
-                        valor3 = "null";
                     }
                     Estructura est = new Estructura(nomCam, valor, tipo, nomCam2, valor2, tipo2, nomCam3, valor3, tipo3 );
                     estructuras.put(nomEst, est);
@@ -704,19 +937,19 @@ public class Interprete extends javax.swing.JFrame {
                 String valor = "";
                 if(tipo.equals("ENTERO")){
                     valor = "0";
+                }else if(tipo.equals("APUNTADOR")){
+                    valor = "NULL";
                 }else if(tipo.equals("CARACTER")){
                     valor = "''";
-                }else if(tipo.equals("APUNTADOR")){
-                    valor = "null";
                 }
                 String valor2 = "";
-                    if(tipo2.equals("ENTERO")){
-                        valor2 = "0";
-                    }else if(tipo2.equals("CARACTER")){
-                        valor2 = "''";
-                    }else if(tipo2.equals("APUNTADOR")){
-                        valor2 = "null";
-                    }
+                if(tipo2.equals("ENTERO")){
+                    valor2 = "0";
+                }else if(tipo2.equals("APUNTADOR")){
+                    valor2 = "NULL";
+                }else if(tipo2.equals("CARACTER")){
+                    valor2 = "''";
+                }
                 Estructura est = new Estructura(nomCam, valor, tipo, nomCam2, valor2, tipo2);
                 estructuras.put(nomEst, est);
             }else{
@@ -765,8 +998,8 @@ public class Interprete extends javax.swing.JFrame {
                         variables.put(var, v);
                         Estructura d = estructuras.get(estVar);
                         estructuras.put(var, d);
-                        //Mostrar();
-                        
+                        Mostrar();
+                        NumEst();
                         VARIABLES(estVar);
                     }
                 }else{
@@ -793,6 +1026,7 @@ public class Interprete extends javax.swing.JFrame {
                         variables.put(Var, v);
                         Estructura d = estructuras.get(nomEst);
                         estructuras.put(Var, d);
+                        NumEst();
                         VARIABLES(nomEst);
                     }
                 }else{
@@ -829,7 +1063,8 @@ public class Interprete extends javax.swing.JFrame {
                     variables.put(nomVar, v);
                     Estructura d = estructuras.get(nomEst);
                     estructuras.put(nomVar, d);
-                    //Mostrar();
+                    Mostrar();
+                    NumEst();
                     VAR2(nomEst);   
                 }
             }else if( preanalisis.getToken().equals("puntoComa")){
@@ -854,6 +1089,8 @@ public class Interprete extends javax.swing.JFrame {
                         VAR2(nomEst);
                         Estructura d = estructuras.get(nomEst);
                         estructuras.put(nomVar, d);
+                        Mostrar();
+                        NumEst();
                         //Mostrar();
                         Emparejar("puntoComa");
                         VARIABLES2();   
@@ -907,11 +1144,29 @@ public class Interprete extends javax.swing.JFrame {
             if(preanalisis.getToken().equals("PrSI")){
                 Emparejar("PrSI");
                 Emparejar("pAbre");
-                CONDICION();
+                boolean si = CONDICION();
                 Emparejar("pCierra");
                 Emparejar("PrENTONCES");
-                INSTRUCCIONES();
-                SINO();
+                if(si){
+                    INSTRUCCIONES();
+                }else{
+                    while(!preanalisis.getToken().equals("PrSINO") && !preanalisis.getToken().equals("PrFIN")){
+                        preanalisis = Preanalisis();    
+                        if(preanalisis.getToken().equals("finFichero")){
+                            break;
+                        }
+                    }
+                }
+                if(!si){
+                    SINO();
+                }else{
+                    while(!preanalisis.getToken().equals("PrFIN")){
+                        preanalisis = Preanalisis();    
+                        if(preanalisis.getToken().equals("finFichero")){
+                            break;
+                        }
+                    }
+                }
                 Emparejar("PrFIN");
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "SI");
@@ -932,78 +1187,87 @@ public class Interprete extends javax.swing.JFrame {
         }
     }
     
-    public void CONDICION(){
+    public boolean CONDICION(){
         if(!Error){
         if(preanalisis.getToken().equals("id") || preanalisis.getToken().equals("num") || preanalisis.getToken().equals("comilla")){
-                String v1 = VARCON();
-                CONDICIONAL();
-                String v2 = VARCON1();
-                //System.out.println("V1: " + v1 + " -- V2" + v2);
-                if(!v1.equals(v2)){
+                String[] v1 = new String[2];
+                v1 = VARCON();
+                int cond = CONDICIONAL();
+                String[] v2 =  new String[2];
+                v2 = VARCON1();
+                if(!v1[0].equals(v2[0])){
                     ErrorSemantico(preanalisis.linea(), 8);
-                }
-            }else{
-                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
-            }   
-        }
-    }
-    public String VARCON(){
-        if(!Error){
-            if(preanalisis.getToken().equals("id")){
-                String est = preanalisis.lexema();
-                Emparejar("id");
-                String var = AP();
-                if(!var.equals("")){
-                    if(variables.containsKey(est)){
-                        if(variables.get(est).tipo2().equals("ESTRUCTURA")){
-                            if(estructuras.containsKey(est)){
-                                String buscar = buscarCampo(variables.get(est).getTipo(), var);
-                                if(buscar.equals("Error")){
-                                    ErrorSemantico(preanalisis.linea(),4);
-                                }else{
-                                    String tip = buscarTipo(variables.get(est).getTipo(), var);
-                                   // System.out.println("TIPO " + tip);
-                                    if(tip.equals("ENTERO")){
-                                        return "int";
-                                    }else if(tip.equals("CARACTER")){
-                                        return "String";
-                                    }else{
-                                        return buscarTipo(est, var);
-                                    }
-                                }
-                            }else{
-                                ErrorSemantico(preanalisis.linea(),6);
-                            }    
-                        }else if(variables.get(est).tipo2().equals("int")){
-                            return "int";
-                        }else{
-                            ErrorSemantico(preanalisis.linea(),8);    
-                        }
-                    }else{
-                        ErrorSemantico(preanalisis.linea(),6);    
-                    }
                 }else{
-                    if(variables.containsKey(est)){
-                        return variables.get(est).tipo2();
-                    }else{
-                        ErrorSemantico(preanalisis.linea(),2);
+                    if(v1[0].equals("int")){
+                        switch(cond){
+                        case 1:
+                            if( Integer.parseInt(v1[1]) == Integer.parseInt(v2[1])){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        case 2:
+                            if( Integer.parseInt(v1[1]) != Integer.parseInt(v2[1])){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        case 3:
+                            if( Integer.parseInt(v1[1]) < Integer.parseInt(v2[1])){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        case 4:
+                            if( Integer.parseInt(v1[1]) > Integer.parseInt(v2[1])){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        case 5:
+                            if( Integer.parseInt(v1[1]) >= Integer.parseInt(v2[1])){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        case 6:
+                            if( Integer.parseInt(v1[1]) <= Integer.parseInt(v2[1])){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        default:
+                            return  false;
                     }
+                    }else{
+                        switch(cond){
+                        case 1:
+                            if( v1[1] == v2[1]){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                        case 2:
+                            if( v1[1] != v2[1]){
+                                return true;
+                            }else{
+                                return false;
+                            }
+                            
+                            
+                        default:
+                            return  false;
+                    }
+                    }
+                    
                 }
-            }else if(preanalisis.getToken().equals("num")){
-                Emparejar("num");
-                return "int";
-            }else if(preanalisis.getToken().equals("comilla")){
-                Emparejar("comilla");
-                CAR();
-                Emparejar("comilla");
-                return "String";
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
             }   
         }
-        return "Error";
+        return false;
     }
-    public String VARCON1(){
+    public String[] VARCON(){
         if(!Error){
             if(preanalisis.getToken().equals("id")){
                 String est = preanalisis.lexema();
@@ -1018,20 +1282,31 @@ public class Interprete extends javax.swing.JFrame {
                                     ErrorSemantico(preanalisis.linea(),4);
                                 }else{
                                     String tip = buscarTipo(est, var);
-                                    //System.out.println("TIPO " + tip);
                                     if(tip.equals("ENTERO")){
-                                        return "int";
+                                        String[] v1 = new String[2];
+                                        v1[0] = "int";
+                                        v1[1] = buscarCampo(est, var);
+                                        return v1;
                                     }else if(tip.equals("CARACTER")){
-                                        return "String";
+                                        String[] v1 = new String[2];
+                                        v1[0] = "String";
+                                        v1[1] = buscarCampo(est, var);
+                                        return v1;
                                     }else{
-                                        return buscarTipo(est, var);
+                                        String[] v1 = new String[2];
+                                        v1[0] = buscarTipo(est, var);
+                                        v1[1] = buscarCampo(est, var);
+                                        return v1;
                                     }
                                 }
                             }else{
                                 ErrorSemantico(preanalisis.linea(),6);
                             }    
                         }else if(variables.get(est).tipo2().equals("int")){
-                            return "int";
+                            String[] v1 = new String[2];
+                            v1[0] = "int";
+                            v1[1] = String.valueOf(variables.get(est).getValorInt());
+                            return v1;
                         }else{
                             ErrorSemantico(preanalisis.linea(),8);    
                         }
@@ -1040,24 +1315,125 @@ public class Interprete extends javax.swing.JFrame {
                     }
                 }else{
                     if(variables.containsKey(est)){
-                        return variables.get(est).tipo2();
+                        if(variables.get(est).tipo2().equals("int")){
+                            String[] v1 = new String[2];
+                            v1[0] = "int";
+                            v1[1] = String.valueOf(variables.get(est).getValorInt());
+                            return v1;   
+                        }else{
+                            String[] v1 = new String[2];
+                            v1[0] = variables.get(est).tipo2();
+                            v1[1] = variables.get(est).getValor();
+                            return v1;
+                        }
                     }else{
                         ErrorSemantico(preanalisis.linea(),2);
                     }
                 }
             }else if(preanalisis.getToken().equals("num")){
+                String num = preanalisis.lexema();
                 Emparejar("num");
-                return "int";
+                String[] v1 = new String[2];
+                v1[0] = "int";
+                v1[1] = num;
+                return v1;
             }else if(preanalisis.getToken().equals("comilla")){
                 Emparejar("comilla");
-                CAR();
+                String car = CAR();
                 Emparejar("comilla");
-                return "String";
+                String[] v1 = new String[2];
+                v1[0] = "String";
+                v1[1] = car;
+                return v1;
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
             }   
         }
-        return "Error";
+        return null;
+    }
+    public String[] VARCON1(){
+        if(!Error){
+            if(preanalisis.getToken().equals("id")){
+                String est = preanalisis.lexema();
+                Emparejar("id");
+                String var = AP();
+                if(!var.equals("")){
+                    if(variables.containsKey(est)){
+                        if(variables.get(est).tipo2().equals("ESTRUCTURA")){
+                            if(estructuras.containsKey(est)){
+                                String buscar = buscarCampo(est, var);
+                                if(buscar.equals("Error")){
+                                    ErrorSemantico(preanalisis.linea(),4);
+                                }else{
+                                    String tip = buscarTipo(est, var);
+                                    if(tip.equals("ENTERO")){
+                                        String[] v2 = new String[2];
+                                        v2[0] = "int";
+                                        v2[1] = buscarCampo(est, var);
+                                        return v2;
+                                    }else if(tip.equals("CARACTER")){
+                                        String[] v2 = new String[2];
+                                        v2[0] = "String";
+                                        v2[1] = buscarCampo(est, var);
+                                        return v2;
+                                    }else{
+                                        String[] v2 = new String[2];
+                                        v2[0] = buscarTipo(est, var);
+                                        v2[1] = buscarCampo(est, var);
+                                        return v2;
+                                    }
+                                }
+                            }else{
+                                ErrorSemantico(preanalisis.linea(),6);
+                            }    
+                        }else if(variables.get(est).tipo2().equals("int")){
+                            String[] v2 = new String[2];
+                            v2[0] = "int";
+                            v2[1] = preanalisis.lexema();
+                            return v2;
+                        }else{
+                            ErrorSemantico(preanalisis.linea(),8);    
+                        }
+                    }else{
+                        ErrorSemantico(preanalisis.linea(),6);    
+                    }
+                }else{
+                    if(variables.containsKey(est)){
+                        if(variables.get(est).tipo2().equals("int")){
+                            String[] v1 = new String[2];
+                            v1[0] = "int";
+                            v1[1] = String.valueOf(variables.get(est).getValorInt());
+                            return v1;   
+                        }else{
+                            String[] v1 = new String[2];
+                            v1[0] = variables.get(est).tipo2();
+                            v1[1] = variables.get(est).getValor();
+                            return v1;
+                        }
+                    }else{
+                        ErrorSemantico(preanalisis.linea(),2);
+                    }
+                }
+            }else if(preanalisis.getToken().equals("num")){
+                String num = preanalisis.lexema();
+                Emparejar("num");
+                String[] v2 = new String[2];
+                v2[0] = "int";
+                v2[1] = num;
+                return v2;
+            }else if(preanalisis.getToken().equals("comilla")){
+                Emparejar("comilla");
+                String car = CAR();
+                Emparejar("comilla");
+                String[] v2 = new String[2];
+                v2[0] = "String";
+                v2[1] = car;
+                return v2;
+            }else{
+                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "id, num, o '");   
+            }   
+        }
+        return null;
     }
     public String AP(){
         if(!Error){
@@ -1066,7 +1442,7 @@ public class Interprete extends javax.swing.JFrame {
                String var = preanalisis.lexema();
                Emparejar("id");
                return var;
-           }else if(preanalisis.getToken().equals("igualdad") || preanalisis.getToken().equals("diferentes") || 
+           }else if(preanalisis.getToken().equals("igualdad") || preanalisis.getToken().equals("diferente") || 
                    preanalisis.getToken().equals("mayor") || preanalisis.getToken().equals("menor") || 
                    preanalisis.getToken().equals("mayorIgual") || preanalisis.getToken().equals("menorIgual") ||
                    preanalisis.getToken().equals("pCierra")){
@@ -1078,24 +1454,31 @@ public class Interprete extends javax.swing.JFrame {
         return "";
     } 
 //ESTRUCTURAS
-    public void CONDICIONAL(){
+    public int CONDICIONAL(){
         if(!Error){
             if(preanalisis.getToken().equals("igualdad")){
                 Emparejar("igualdad");
+                return 1;
             }else if(preanalisis.getToken().equals("diferente")){
                 Emparejar("diferente");
+                return 2;
             }else if(preanalisis.getToken().equals("menor")){
                 Emparejar("menor");
+                return 3;
             }else if(preanalisis.getToken().equals("mayor")){
                 Emparejar("mayor");
+                return 4;
             }else if(preanalisis.getToken().equals("mayorIgual")){
                 Emparejar("mayorIgual");
+                return 5;
             }else if(preanalisis.getToken().equals("menorIgual")){
                 Emparejar("menorIgual");
+                return 6;
             }else{
                 ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "==, !=, <, >, >= o <=");   
             }    
         }
+        return 0;
     }
     public String buscarCampo(String est, String var){
         if(estructuras.get(est).getCampo1().equals(var)){
@@ -1118,7 +1501,7 @@ public class Interprete extends javax.swing.JFrame {
             }
         }
         if(estructuras.get(est).getCampo3() != null){
-            if(estructuras.get(est).getCampo2().equals(var)){
+            if(estructuras.get(est).getCampo3().equals(var)){
                 return estructuras.get(est).getTipo3();
             }
         }
@@ -1127,7 +1510,6 @@ public class Interprete extends javax.swing.JFrame {
     }
     public void actualizarValor(String est, String var, String valor){
         if(estructuras.get(est).getCampo1().equals(var)){
-            //System.out.println("EST: " + est + "   VAR: " + var + "   VALOR: " + valor);
             if(estructuras.get(est).getCampo2() != null){
                 if(estructuras.get(est).getCampo3() != null){
                     Estructura e = new Estructura(estructuras.get(est).getCampo1(), valor, estructuras.get(est).getTipo1(),estructuras.get(est).getCampo2(), estructuras.get(est).getValor2(), estructuras.get(est).getTipo2(),estructuras.get(est).getCampo3(), estructuras.get(est).getValor3(), estructuras.get(est).getTipo3());
@@ -1142,7 +1524,6 @@ public class Interprete extends javax.swing.JFrame {
             }
             //estructuras.get(est).setValor1(valor);
         }else if(estructuras.get(est).getCampo2().equals(var)){
-            //System.out.println("EST: " + est + "   VAR: " + var + "   VALOR: " + valor);
             if(estructuras.get(est).getCampo3() != null){
                     Estructura e = new Estructura(estructuras.get(est).getCampo1(), estructuras.get(est).getValor1(), estructuras.get(est).getTipo1(),estructuras.get(est).getCampo2(),valor, estructuras.get(est).getTipo2(),estructuras.get(est).getCampo3(), estructuras.get(est).getValor3(), estructuras.get(est).getTipo3());
                     estructuras.put(est, e);
@@ -1152,24 +1533,60 @@ public class Interprete extends javax.swing.JFrame {
                 }
             //estructuras.get(est).setValor2(valor);
         }else if(estructuras.get(est).getCampo3().equals(var)){
-                //System.out.println("EST: " + est + "   VAR: " + var + "   VALOR: " + valor);            
                 Estructura e = new Estructura(estructuras.get(est).getCampo1(), estructuras.get(est).getValor1(), estructuras.get(est).getTipo1(),estructuras.get(est).getCampo2(),estructuras.get(est).getValor2(), estructuras.get(est).getTipo2(),estructuras.get(est).getCampo3(), valor, estructuras.get(est).getTipo3());
                 estructuras.put(est, e);            
 //estructuras.get(est).setValor3(valor);
         }else{
             ErrorSemantico(preanalisis.linea(), 4);
         }
+        repaint();
     }
     
     public void MIENTRAS(){
         if(!Error){
-           if(preanalisis.getToken().equals("PrMIENTRAS")){
-               Emparejar("PrMIENTRAS");
-               Emparejar("pAbre");
-               CONDICION();
-               Emparejar("pCierra");
-               Emparejar("PrHACER");
-               INSTRUCCIONES();
+            if(preanalisis.getToken().equals("PrMIENTRAS")){
+                Emparejar("PrMIENTRAS");
+                int whileCont = cont;
+                Emparejar("pAbre");
+                boolean entro = false;
+                int finCont = cont;
+                boolean si = CONDICION();
+                Emparejar("pCierra");
+                Emparejar("PrHACER");
+                System.out.println("Token - Entrar: " + preanalisis.getToken());
+                if(si){
+                    while(si){
+                        //System.out.println("Token - Instrucciones: " + preanalisis.getToken());
+                        INSTRUCCIONES();
+                        if(preanalisis.getToken().equals("PrFIN")){
+                            finCont = cont - 4 ;
+                            entro = true;
+                        }
+                        cont = whileCont;
+                        preanalisis = Preanalisis();
+                        System.out.println("Token: " + preanalisis.getToken());
+                        si = CONDICION();
+                        Emparejar("pCierra");
+                        Emparejar("PrHACER");
+                        
+                    }
+               }else{
+                    
+                    
+                   while(!preanalisis.getToken().equals("PrFIN")){
+                        preanalisis = Preanalisis();    
+                        if(preanalisis.getToken().equals("finFichero")){
+                            ErrorSintactico("Fin de fichero", preanalisis.linea(), "FIN");
+                        }
+                    } 
+               }
+                
+                if(entro){
+                    System.out.println("Tdsdsdssdsikem; " + preanalisis.getToken());
+                        cont = finCont;
+                        preanalisis = Preanalisis();
+                }
+                //System.out.println("Tikem; " + preanalisis.getToken());
                Emparejar("PrFIN");
            }else{
                ErrorSintactico(preanalisis.getToken(), preanalisis.linea(), "MIENTRAS");
@@ -1230,8 +1647,13 @@ public class Interprete extends javax.swing.JFrame {
                 Emparejar("comilla");
                 String cadena = "";
                 while(!preanalisis.getToken().equals("comilla")){
-                    cadena = cadena + " " + preanalisis.lexema();
-                    preanalisis = Preanalisis();
+                    if(preanalisis.getToken().equals("finFichero")){
+                        ErrorSemantico(preanalisis.linea(), 12);
+                        break;
+                    }else{
+                        cadena = cadena + " " + preanalisis.lexema();
+                        preanalisis = Preanalisis();
+                    }                    
                 }
                 Emparejar("comilla");
                 return cadena;
@@ -1304,13 +1726,19 @@ public class Interprete extends javax.swing.JFrame {
             if(operador1Est.equals("")){
                 if(variables.containsKey(operador1)){
                     if(variables.get(operador1).tipo2().equals("int")){
-                        String buscar = buscarTipo(varAsi, varOpc);
-                        if(buscar.equals("ENTERO")){
-                            int operador1Int = variables.get(operador1).getValorInt();
-                            OP2Int(varAsi, varOpc, operador1Int);   
+                        if(!varOpc.equals("")){
+                            String buscar = buscarTipo(varAsi, varOpc);
+                            if(buscar.equals("ENTERO")){
+                                int operador1Int = variables.get(operador1).getValorInt();
+                                OP2Int(varAsi, varOpc, operador1Int);   
+                            }else{
+                                ErrorSemantico(preanalisis.linea(), 8);
+                            }    
                         }else{
-                            ErrorSemantico(preanalisis.linea(), 8);
+                                   int operador1Int = variables.get(operador1).getValorInt();
+                                OP2Int(varAsi, varOpc, operador1Int);   
                         }
+                        
                         
                     }else{
                         if(variables.containsKey(operador1)){
@@ -1326,14 +1754,16 @@ public class Interprete extends javax.swing.JFrame {
                                     }
                                 }
                             }else{
-                                String buscar = buscarTipo(varAsi, varOpc);
-                                System.out.println("JBDKJBDLD " + buscar);
-                                if(buscar.equals("CARACTER")){
-                                    OP2String(varAsi, varOpc, variables.get(operador1).getValor());
+                                if(!varOpc.equals("")){
+                                    String buscar = buscarTipo(varAsi, varOpc);
+                                    if(buscar.equals("CARACTER")){
+                                        
+                                    }else{
+                                        ErrorSemantico(preanalisis.linea(),8);
+                                    }
                                 }else{
-                                    ErrorSemantico(preanalisis.linea(),8);
+                                    OP2String(varAsi, varOpc, variables.get(operador1).getValor());
                                 }
-                                
                             }
                         }else{
                             ErrorSemantico(preanalisis.linea(), 2);
@@ -1388,9 +1818,6 @@ public class Interprete extends javax.swing.JFrame {
                 }*/
                 ErrorSemantico(preanalisis.linea(), 8);
             }else{
-                //Mostrar();
-//                System.out.println(variables.get(varAsi).getTipo());
-//                System.out.println(varAsi);
                 if(variables.containsKey(varAsi)){
                     if(estructuras.containsKey(varAsi)){
                         String tipo = buscarTipo(varAsi, varOpc);
@@ -1444,8 +1871,18 @@ public class Interprete extends javax.swing.JFrame {
             int op3 = OP3();
             int res = OPERACION(operador1, op, op3);
             if(varOpc.equals("")){
-                Variable v = new Variable("VARIABLE", res, preanalisis.linea(), "int" );
-                variables.put(varAsi, v);
+                if(variables.containsKey(varAsi)){
+                    if(variables.get(varAsi).getTipo().equals("VARIABLE")){
+                        Variable v = new Variable("VARIABLE", res, preanalisis.linea(), "int" );
+                        variables.put(varAsi, v);
+                    }else{
+                        ErrorSemantico(preanalisis.linea(), 1);
+                    }
+                }else{
+                    Variable v = new Variable("VARIABLE", res, preanalisis.linea(), "int" );
+                    variables.put(varAsi, v);
+                }
+               
             }else{
                 if(estructuras.containsKey(varAsi)){                    
                     String tipo = buscarTipo(variables.get(varAsi).getTipo(), varOpc);
@@ -1702,6 +2139,9 @@ public class Interprete extends javax.swing.JFrame {
                 case 11:
                     this.resultado.append("\nError Semantico en la linea " + linea + " - se debe declara al menos una varible de tipo estructura para cada estructura existente\n");
                     break;
+                case 12:
+                    this.resultado.append("\nError Sintactico en la linea " + linea + " - se encontro fin de fichero y se esperada comilla\n");
+                    break;
                 default: 
                     this.resultado.append("\nError Semantico en la linea " + linea);
                     break;
@@ -1743,120 +2183,10 @@ public class Interprete extends javax.swing.JFrame {
     public void Mostrar(){
         System.out.println("\n\n ----- HASH MAP ----");
         for(Map.Entry<String, Estructura> entry: estructuras.entrySet()){
-            System.out.println("Key: " + entry.getKey() + " Valor: " + entry.getValue().getValor1());
+            System.out.println("Key: " + entry.getKey() + " Valor: " + entry.getValue().getCampo3());
         }
     }
-    public void NumEst(){
-        int est1 = 0;
-        int est2 = 0;
-        int i = 0;
-       for(Map.Entry<String, Estructura> entry: estructuras.entrySet()){
-           System.out.println("Key: " + entry.getKey());
-           if(!variables.containsKey(entry.getKey())){
-                i++;
-                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
-                    if(i == 1){
-                       // System.out.println("ENtry: " + entry2.getValue().getTipo());
-                        if(entry2.getValue().getTipo().equals(entry.getKey())){
-                            est1++;
-                            if(entry.getValue().getCampo2() != null){
-                                if(entry.getValue().getCampo3() != null){
-                                    //campo = 3
-                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                            //entry.getValue().getValor1();
-                                    String valor2 = estructuras.get(entry2.getKey()).getValor2();
-                                    String valor3 = estructuras.get(entry2.getKey()).getValor3();
-                                    System.out.println(" Valor1: " + valor1);
-                                }else{
-                                    //campo = 2
-                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                    String valor2 = estructuras.get(entry2.getKey()).getValor2();
-                                    System.out.println(" Valor1: " + valor1);
-                                }
-                            }else{
-                                //campo = 1
-                                String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                System.out.println(" Valor1: " + valor1);
-                            }
-                        }
-                    }else{
-                        //System.out.println("ENtry: " + entry2.getValue().getTipo());
-                        if(entry2.getValue().getTipo().equals(entry.getKey())){
-                            //encontro2 = true;
-                            est2++;
-                            if(entry.getValue().getCampo2() != null){
-                                if(entry.getValue().getCampo3() != null){
-                                    //campo = 3
-                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                    String valor2 = estructuras.get(entry2.getKey()).getValor2();
-                                    String valor3 = estructuras.get(entry2.getKey()).getValor3();
-                                }else{
-                                    //campo = 2
-                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                    String valor2 = estructuras.get(entry2.getKey()).getValor2();
-                                }
-                            }else{
-                                //campo = 1
-                                String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                            }
-                        }    
-                    }
-                }    
-            }else{
-               //System.out.println("jbc: " + variables.get(entry.getKey()).tipo2());
-                if(!variables.get(entry.getKey()).tipo2().equals("ESTRUCTURA")){
-                  i++;
-                for(Map.Entry<String, Variable> entry2: variables.entrySet()){
-                    if(i == 1){
-                        //System.out.println("ENtry: " + entry2.getValue().getTipo() + "  - i:  " + i);
-                        if(entry2.getValue().getTipo().equals(entry.getKey())){
-                            if(entry.getValue().getCampo2() != null){
-                                if(entry.getValue().getCampo3() != null){
-                                    //campo = 3
-                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                    String valor2 = estructuras.get(entry2.getKey()).getValor2();
-                                    String valor3 = estructuras.get(entry2.getKey()).getValor3();
-                                }else{
-                                    //campo = 2
-                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                    String valor2 = estructuras.get(entry2.getKey()).getValor2();
-                                }
-                            }else{
-                                //campo = 1
-                                String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                System.out.println(" Valor1: " + valor1);
-                            }
-                        }
-                    }else{
-                        //System.out.println("ENtry: " + entry2.getValue().getTipo());
-                       // System.out.println("ENtry: " + entry.getKey() + " ENTRY2: " + entry2.getKey()+" - i:  " + i);
-                        if(entry2.getValue().getTipo().equals(entry.getKey())){
-                            //encontro2 = true;
-                            est2++;
-                            if(entry.getValue().getCampo2() != null){
-                                if(entry.getValue().getCampo3() != null){
-                                    //campo = 3
-                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                    String valor2 = estructuras.get(entry2.getKey()).getValor2();
-                                    String valor3 = estructuras.get(entry2.getKey()).getValor3();
-                                }else{
-                                    //campo = 2
-                                    String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                    String valor2 = estructuras.get(entry2.getKey()).getValor2();
-                                }
-                            }else{
-                                //campo = 1
-                                String valor1 = estructuras.get(entry2.getKey()).getValor1();
-                                System.out.println(" Valor1: " + valor1);
-                            }
-                        }    
-                    }
-                }   
-                }
-           }
-        }
-       //System.out.println("i: " + i + "NUM 1: "  + est1 + "  -  NUM 2: " + est2);
-    }
+    
     public void NumCampos(){
         int est1 = 0;
         int est2 = 0;
@@ -1878,6 +2208,7 @@ public class Interprete extends javax.swing.JFrame {
         }
        System.out.println("NUM 1: "  + est1 + "  -  NUM 2: " + est2);
     }
+    
     //** ANALIZADOR SINTACTICO **\\
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
